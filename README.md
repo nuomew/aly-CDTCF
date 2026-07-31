@@ -49,7 +49,7 @@ npx wrangler login
 ### 3. 创建 D1 数据库
 
 ```bash
-npx wrangler d1 create aliyun-traffic
+npx wrangler d1 create aly-cdtcf
 ```
 
 将输出的 `database_id` 填入 `wrangler.jsonc`。
@@ -57,8 +57,8 @@ npx wrangler d1 create aliyun-traffic
 ### 4. 初始化数据库
 
 ```bash
-npx wrangler d1 execute aliyun-traffic --remote --file=./schema/schema.sql
-npx wrangler d1 execute aliyun-traffic --remote --file=./schema/seed.sql
+npx wrangler d1 execute aly-cdtcf --remote --file=./worker/schema/schema.sql
+npx wrangler d1 execute aly-cdtcf --remote --file=./worker/schema/seed.sql
 ```
 
 ### 5. 配置环境变量

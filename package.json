@@ -1,15 +1,15 @@
 {
-  "name": "aliyun-traffic-worker",
+  "name": "aly-cdtcf",
   "version": "1.0.0",
   "private": true,
   "description": "阿里云流量查询系统 - Cloudflare Workers 版本",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "db:init": "wrangler d1 execute aliyun-traffic --file=./worker/schema/schema.sql",
-    "db:init:local": "wrangler d1 execute aliyun-traffic --local --file=./worker/schema/schema.sql",
-    "db:seed": "wrangler d1 execute aliyun-traffic --file=./worker/schema/seed.sql",
-    "db:seed:local": "wrangler d1 execute aliyun-traffic --local --file=./worker/schema/seed.sql"
+    "db:init": "wrangler d1 execute aly-cdtcf --file=./worker/schema/schema.sql",
+    "db:init:local": "wrangler d1 execute aly-cdtcf --local --file=./worker/schema/schema.sql",
+    "db:seed": "wrangler d1 execute aly-cdtcf --file=./worker/schema/seed.sql",
+    "db:seed:local": "wrangler d1 execute aly-cdtcf --local --file=./worker/schema/seed.sql"
   },
   "devDependencies": {
     "wrangler": "^3.0.0"
