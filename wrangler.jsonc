@@ -1,6 +1,6 @@
 {
   "$schema": "https://developers.cloudflare.com/schemas/wrangler.jsonc",
-  "name": "aly-CDTCF",
+  "name": "aly-cdtcf",
   "main": "worker/src/index.js",
   "compatibility_date": "2026-07-30",
   "assets": {
