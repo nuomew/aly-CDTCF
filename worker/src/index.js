@@ -12,6 +12,7 @@ import { handleAuthRoutes } from './routes/auth.js';
 import { handleCronTask } from './routes/cron.js';
 import { checkAuth } from './lib/auth.js';
 import { jsonResponse, errorResponse } from './lib/helpers.js';
+import { ensureDatabaseInitialized } from './lib/db-init.js';
 
 export default {
   /**
@@ -39,6 +40,9 @@ export default {
     }
 
     try {
+      // 自动初始化数据库（首次请求时建表+插入初始数据）
+      await ensureDatabaseInitialized(env.DB);
+
       // API 路由处理
       if (path.startsWith('/api/')) {
         // 认证相关路由（无需登录）
@@ -96,6 +100,7 @@ export default {
   async scheduled(controller, env, ctx) {
     console.log('定时任务开始执行:', new Date().toISOString());
     try {
+      await ensureDatabaseInitialized(env.DB);
       await handleCronTask(env);
       console.log('定时任务执行完成');
     } catch (err) {
