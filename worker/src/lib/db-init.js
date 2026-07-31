@@ -4,6 +4,8 @@
  * 解决一键部署后 D1 数据库为空的问题
  */
 
+import { hashPassword } from './auth.js';
+
 // 建表 SQL 数组（逐条执行，避免 exec 对注释的解析问题）
 const SCHEMA_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS system_config (
@@ -151,7 +153,7 @@ export async function ensureDatabaseInitialized(db) {
 
     if (!result) {
       console.log('数据库表不存在，开始自动初始化...');
-      // 逐条执行建表 SQL（避免 exec 对注释的解析问题）
+      // 逐条执行建表 SQL
       for (const sql of SCHEMA_STATEMENTS) {
         await db.prepare(sql).run();
       }
@@ -161,6 +163,17 @@ export async function ensureDatabaseInitialized(db) {
         await db.prepare(sql).run();
       }
       console.log('初始数据插入完成');
+    }
+
+    // 检查是否有管理员账户，没有则创建默认 admin/admin
+    const adminCount = await db.prepare('SELECT COUNT(*) as count FROM admin_users').first();
+    if (adminCount && adminCount.count === 0) {
+      console.log('未发现管理员账户，创建默认 admin/admin...');
+      const hashedPassword = await hashPassword('admin');
+      await db.prepare(
+        'INSERT INTO admin_users (username, password, nickname) VALUES (?, ?, ?)'
+      ).bind('admin', hashedPassword, '管理员').run();
+      console.log('默认管理员账户创建完成');
     }
 
     initialized = true;
