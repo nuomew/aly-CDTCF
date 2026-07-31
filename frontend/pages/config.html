@@ -215,7 +215,7 @@
             function checkAuth(){
                 fetch('/api/auth/check',{credentials:'same-origin'})
                     .then(function(r){return r.json()})
-                    .then(function(d){if(!d.logged_in)window.location.href='login.html'})
+                    .then(function(d){if(!d.success||!d.data||!d.data.logged_in)window.location.href='login.html'})
                     .catch(function(){window.location.href='login.html'});
             }
 
@@ -241,9 +241,11 @@
         function loadConfigs(){
             fetch('/api/config/list',{credentials:'same-origin'})
                 .then(function(r){return r.json()})
-                .then(function(list){
+                .then(function(resp){
+                    if(!resp.success){showToast(resp.message||'加载失败','error');return}
+                    var list=resp.data||[];
                     var tbody=document.getElementById('configTable');
-                    if(!list||!list.length){
+                    if(!list.length){
                         tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:40px;color:#6b7280">暂无配置，点击上方按钮添加</td></tr>';
                         return;
                     }
@@ -313,7 +315,9 @@
         function editConfig(id){
             fetch('/api/config/get?id='+id,{credentials:'same-origin'})
                 .then(function(r){return r.json()})
-                .then(function(c){
+                .then(function(res){
+                    if(!res.success){showToast(res.message||'加载配置失败','error');return}
+                    var c=res.data||{};
                     document.getElementById('modalTitle').textContent='编辑配置';
                     document.getElementById('cfgId').value=c.id;
                     document.getElementById('cfgName').value=c.name||'';
@@ -364,7 +368,7 @@
                 .then(function(r){return r.json()})
                 .then(function(d){
                     if(d.success){showToast(d.message||'保存成功','success');closeModal();loadConfigs()}
-                    else showToast(d.error||'保存失败','error')
+                    else showToast(d.message||'保存失败','error')
                 })
                 .catch(function(){showToast('网络错误','error')});
         }
@@ -379,7 +383,7 @@
                 .then(function(r){return r.json()})
                 .then(function(d){
                     if(d.success)showToast(d.message||'连接成功','success');
-                    else showToast(d.error||'连接失败','error')
+                    else showToast(d.message||'连接失败','error')
                 })
                 .catch(function(){showToast('测试失败','error')});
         }
@@ -391,13 +395,15 @@
         function setDefault(id){
             fetch('/api/config/get?id='+id,{credentials:'same-origin'})
                 .then(function(r){return r.json()})
-                .then(function(c){
+                .then(function(res){
+                    if(!res.success){showToast(res.message||'加载配置失败','error');return}
+                    var c=res.data||{};
                     c.is_default=true;
                     fetch('/api/config/update',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(c)})
                         .then(function(r){return r.json()})
                         .then(function(d){
                             if(d.success){showToast('已设为默认','success');loadConfigs()}
-                            else showToast(d.error||'操作失败','error')
+                            else showToast(d.message||'操作失败','error')
                         });
                 });
         }
@@ -415,7 +421,7 @@
                     .then(function(r){return r.json()})
                     .then(function(d){
                         if(d.success){showToast('删除成功','success');closeDeleteModal();loadConfigs()}
-                        else showToast(d.error||'删除失败','error')
+                        else showToast(d.message||'删除失败','error')
                     })
                     .catch(function(){showToast('删除失败','error')});
             };

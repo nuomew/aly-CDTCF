@@ -113,7 +113,7 @@
             // 检查登录状态
             fetch('/api/auth/check',{credentials:'same-origin'})
                 .then(function(r){return r.json()})
-                .then(function(d){if(!d.logged_in)window.location.href='login.html'})
+                .then(function(d){if(!d.success||!d.data||!d.data.logged_in)window.location.href='login.html'})
                 .catch(function(){window.location.href='login.html'});
             // 加载设置
             loadSettings();
@@ -134,7 +134,9 @@
         function loadSettings(){
             fetch('/api/system/settings',{credentials:'same-origin'})
                 .then(function(r){return r.json()})
-                .then(function(d){
+                .then(function(resp){
+                    if(!resp.success){showToast(resp.message||'加载设置失败','error');return}
+                    var d=resp.data||{};
                     document.getElementById('siteName').value=d.site_name||'';
                     document.getElementById('siteDesc').value=d.site_description||'';
                     document.getElementById('autoRefresh').checked=d.auto_refresh_enabled==='1';
@@ -160,7 +162,7 @@
             .then(function(r){return r.json()})
             .then(function(d){
                 if(d.success)showToast(d.message||'保存成功','success');
-                else showToast(d.error||'保存失败','error')
+                else showToast(d.message||'保存失败','error')
             })
             .catch(function(){showToast('保存失败','error')});
         }

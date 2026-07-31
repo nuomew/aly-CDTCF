@@ -120,7 +120,7 @@
             // 检查登录状态
             fetch('/api/auth/check',{credentials:'same-origin'})
                 .then(function(r){return r.json()})
-                .then(function(d){if(!d.logged_in)window.location.href='login.html'})
+                .then(function(d){if(!d.success||!d.data||!d.data.logged_in)window.location.href='login.html'})
                 .catch(function(){window.location.href='login.html'});
 
             // 设置默认日期为今天
@@ -161,7 +161,9 @@
         function loadTrend(){
             fetch('/api/traffic/trend',{credentials:'same-origin'})
                 .then(function(r){return r.json()})
-                .then(function(d){
+                .then(function(resp){
+                    if(!resp.success)return;
+                    var d=resp.data||{};
                     var labels=[],data=[];
                     if(d.trend&&d.trend.length){
                         d.trend.forEach(function(r){
@@ -195,7 +197,9 @@
         function loadRanking(){
             fetch('/api/traffic/ranking',{credentials:'same-origin'})
                 .then(function(r){return r.json()})
-                .then(function(d){
+                .then(function(resp){
+                    if(!resp.success)return;
+                    var d=resp.data||{};
                     var tbody=document.getElementById('rankingTable');
                     if(!d.ranking||!d.ranking.length){
                         tbody.innerHTML='<tr><td colspan="5" class="empty-msg">暂无数据</td></tr>';return;
@@ -221,7 +225,9 @@
             if(!date)return;
             fetch('/api/traffic/stats?date='+date,{credentials:'same-origin'})
                 .then(function(r){return r.json()})
-                .then(function(d){
+                .then(function(resp){
+                    if(!resp.success)return;
+                    var d=resp.data||{};
                     if(d.records&&d.records.length){
                         // 更新趋势图标题，显示查询日期的数据
                         showToast('已加载 '+date+' 的数据','success');
@@ -239,7 +245,7 @@
                 .then(function(r){return r.json()})
                 .then(function(d){
                     if(d.success){showToast(d.message||'刷新成功','success');loadTrend();loadRanking()}
-                    else showToast(d.error||'刷新失败','error')
+                    else showToast(d.message||'刷新失败','error')
                 })
                 .catch(function(){showToast('刷新失败','error')})
                 .finally(function(){btn.disabled=false;btn.textContent='刷新数据'});

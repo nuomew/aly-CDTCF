@@ -130,7 +130,7 @@
             // 检查登录状态
             fetch('/api/auth/check',{credentials:'same-origin'})
                 .then(function(r){return r.json()})
-                .then(function(d){if(!d.logged_in)window.location.href='login.html'})
+                .then(function(d){if(!d.success||!d.data||!d.data.logged_in)window.location.href='login.html'})
                 .catch(function(){window.location.href='login.html'});
             // 加载实例列表
             loadInstances();
@@ -175,10 +175,12 @@
             document.getElementById('instanceTable').innerHTML='<tr><td colspan="8" class="empty-msg">正在加载...</td></tr>';
             fetch('/api/ecs/instances',{credentials:'same-origin'})
                 .then(function(r){return r.json()})
-                .then(function(list){
-                    instancesData=list||[];
+                .then(function(resp){
+                    if(!resp.success){document.getElementById('instanceTable').innerHTML='<tr><td colspan="8" class="empty-msg" style="color:var(--danger)">'+esc(resp.message||'加载失败')+'</td></tr>';return}
+                    var list=resp.data||[];
+                    instancesData=list;
                     var tbody=document.getElementById('instanceTable');
-                    if(!list||!list.length){
+                    if(!list.length){
                         tbody.innerHTML='<tr><td colspan="8" class="empty-msg">暂无实例</td></tr>';return;
                     }
                     var html='';
@@ -225,7 +227,7 @@
             .then(function(r){return r.json()})
             .then(function(d){
                 if(d.success){showToast(d.message||'操作成功','success');setTimeout(loadInstances,3000)}
-                else showToast(d.error||'操作失败','error')
+                else showToast(d.message||'操作失败','error')
             })
             .catch(function(){showToast('操作失败','error')});
         }
@@ -255,8 +257,9 @@
 
             fetch('/api/ecs/instance/detail?config_id='+inst.configId+'&instance_id='+inst.instanceId,{credentials:'same-origin'})
                 .then(function(r){return r.json()})
-                .then(function(d){
-                    if(d.error){body.innerHTML='<p style="color:var(--danger)">'+esc(d.error)+'</p>';return}
+                .then(function(resp){
+                    if(!resp.success){body.innerHTML='<p style="color:var(--danger)">'+esc(resp.message||'加载失败')+'</p>';return}
+                    var d=resp.data||{};
                     body.innerHTML='<div class="detail-grid">'
                         +'<div class="detail-item"><div class="detail-label">实例名称</div><div class="detail-value">'+esc(d.instanceName)+'</div></div>'
                         +'<div class="detail-item"><div class="detail-label">实例ID</div><div class="detail-value" style="font-family:monospace;font-size:12px">'+esc(d.instanceId)+'</div></div>'

@@ -108,7 +108,7 @@
             // 检查登录状态
             fetch('/api/auth/check',{credentials:'same-origin'})
                 .then(function(r){return r.json()})
-                .then(function(d){if(!d.logged_in)window.location.href='login.html'})
+                .then(function(d){if(!d.success||!d.data||!d.data.logged_in)window.location.href='login.html'})
                 .catch(function(){window.location.href='login.html'});
             // 加载日志
             loadLogs(1);
@@ -123,7 +123,13 @@
             document.getElementById('logTable').innerHTML='<tr><td colspan="5" class="empty-msg">加载中...</td></tr>';
             fetch('/api/system/logs?page='+page+'&limit='+pageSize,{credentials:'same-origin'})
                 .then(function(r){return r.json()})
-                .then(function(d){
+                .then(function(resp){
+                    if(!resp.success){
+                        document.getElementById('logTable').innerHTML='<tr><td colspan="5" class="empty-msg" style="color:var(--danger)">'+esc(resp.message||'加载失败')+'</td></tr>';
+                        renderPagination();
+                        return;
+                    }
+                    var d=resp.data||{};
                     totalLogs=d.total||0;
                     var tbody=document.getElementById('logTable');
                     if(!d.logs||!d.logs.length){

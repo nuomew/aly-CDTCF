@@ -169,7 +169,7 @@
         (function(){
             fetch('/api/auth/check',{credentials:'same-origin'})
                 .then(function(r){return r.json()})
-                .then(function(d){if(!d.logged_in)window.location.href='login.html'})
+                .then(function(d){if(!d.success||!d.data||!d.data.logged_in)window.location.href='login.html'})
                 .catch(function(){window.location.href='login.html'});
             loadMailConfigs();
             loadTemplates();
@@ -190,9 +190,11 @@
         function loadMailConfigs(){
             fetch('/api/system/mail/list',{credentials:'same-origin'})
                 .then(function(r){return r.json()})
-                .then(function(list){
+                .then(function(resp){
+                    if(!resp.success)return;
+                    var list=resp.data||[];
                     var tbody=document.getElementById('mailTable');
-                    if(!list||!list.length){tbody.innerHTML='<tr><td colspan="6" class="empty-msg">暂无邮箱配置</td></tr>';return}
+                    if(!list.length){tbody.innerHTML='<tr><td colspan="6" class="empty-msg">暂无邮箱配置</td></tr>';return}
                     var html='';
                     list.forEach(function(c){
                         html+='<tr>'
@@ -233,7 +235,9 @@
         function editMail(id){
             fetch('/api/system/mail/list',{credentials:'same-origin'})
                 .then(function(r){return r.json()})
-                .then(function(list){
+                .then(function(resp){
+                    if(!resp.success)return;
+                    var list=resp.data||[];
                     var c=list.find(function(x){return x.id===id});
                     if(!c)return;
                     document.getElementById('mailModalTitle').textContent='编辑邮箱配置';
@@ -275,7 +279,7 @@
                 .then(function(r){return r.json()})
                 .then(function(d){
                     if(d.success){showToast(d.message||'保存成功','success');closeMailModal();loadMailConfigs()}
-                    else showToast(d.error||'保存失败','error')
+                    else showToast(d.message||'保存失败','error')
                 })
                 .catch(function(){showToast('保存失败','error')});
         }
@@ -290,7 +294,7 @@
                 .then(function(r){return r.json()})
                 .then(function(d){
                     if(d.success)showToast(d.message||'发送成功','success');
-                    else showToast(d.error||'发送失败','error')
+                    else showToast(d.message||'发送失败','error')
                 })
                 .catch(function(){showToast('发送失败','error')});
         }
@@ -305,7 +309,7 @@
                 .then(function(r){return r.json()})
                 .then(function(d){
                     if(d.success){showToast('删除成功','success');loadMailConfigs()}
-                    else showToast(d.error||'删除失败','error')
+                    else showToast(d.message||'删除失败','error')
                 });
         }
 
@@ -317,9 +321,11 @@
         function loadTemplates(){
             fetch('/api/system/mail-template/list',{credentials:'same-origin'})
                 .then(function(r){return r.json()})
-                .then(function(list){
+                .then(function(resp){
+                    if(!resp.success)return;
+                    var list=resp.data||[];
                     var tbody=document.getElementById('templateTable');
-                    if(!list||!list.length){tbody.innerHTML='<tr><td colspan="4" class="empty-msg">暂无模板</td></tr>';return}
+                    if(!list.length){tbody.innerHTML='<tr><td colspan="4" class="empty-msg">暂无模板</td></tr>';return}
                     var html='';
                     list.forEach(function(t){
                         html+='<tr>'
@@ -340,7 +346,9 @@
         function editTemplate(id){
             fetch('/api/system/mail-template/list',{credentials:'same-origin'})
                 .then(function(r){return r.json()})
-                .then(function(list){
+                .then(function(resp){
+                    if(!resp.success)return;
+                    var list=resp.data||[];
                     var t=list.find(function(x){return x.id===id});
                     if(!t)return;
                     document.getElementById('tplId').value=t.id;
@@ -367,7 +375,7 @@
                 .then(function(r){return r.json()})
                 .then(function(d){
                     if(d.success){showToast(d.message||'保存成功','success');closeTemplateModal();loadTemplates()}
-                    else showToast(d.error||'保存失败','error')
+                    else showToast(d.message||'保存失败','error')
                 })
                 .catch(function(){showToast('保存失败','error')});
         }

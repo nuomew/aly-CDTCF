@@ -269,8 +269,8 @@
                 fetch('/api/auth/check',{credentials:'same-origin'})
                     .then(function(r){return r.json()})
                     .then(function(d){
-                        if(!d.logged_in){window.location.href='login.html';return}
-                        document.getElementById('adminName').textContent='欢迎，'+(d.admin.nickname||d.admin.username);
+                        if(!d.success||!d.data||!d.data.logged_in){window.location.href='login.html';return}
+                        document.getElementById('adminName').textContent='欢迎，'+(d.data.admin.nickname||d.data.admin.username);
                     })
                     .catch(function(){window.location.href='login.html'});
             }
@@ -287,7 +287,9 @@
              */
             fetch('/api/traffic/dashboard',{credentials:'same-origin'})
                 .then(function(r){return r.json()})
-                .then(function(d){
+                .then(function(resp){
+                    if(!resp.success){return}
+                    var d=resp.data;
                     // 渲染统计卡片
                     document.getElementById('statConfigCount').innerHTML=d.configCount+' / '+d.totalConfigCount;
                     document.getElementById('statTodayTraffic').innerHTML=toGB(d.todayTraffic)+' <small>GB</small>';
