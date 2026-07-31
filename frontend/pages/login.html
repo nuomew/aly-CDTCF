@@ -486,7 +486,7 @@
                         // 登录成功，跳转到后台首页
                         window.location.href = '/pages/admin.html';
                     } else {
-                        showError(data.error || '登录失败，请重试');
+                        showError(data.message || data.error || '登录失败，请重试');
                         setLoading(false);
                     }
                 })

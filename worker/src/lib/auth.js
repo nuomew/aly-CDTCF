@@ -140,11 +140,13 @@ export async function decryptData(ciphertext, secret) {
  */
 export async function createSession(db, adminId, ip, userAgent) {
   const token = generateToken();
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24小时
+  // 使用 SQLite 兼容格式 YYYY-MM-DD HH:MM:SS
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
+    .toISOString().replace('T', ' ').replace(/\.\d+Z$/, '');
 
   await dbRun(db,
     'INSERT INTO sessions (token, admin_id, ip, user_agent, expires_at) VALUES (?, ?, ?, ?, ?)',
-    [token, adminId, ip, userAgent]
+    [token, adminId, ip, userAgent, expiresAt]
   );
 
   return token;
