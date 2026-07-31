@@ -4,8 +4,7 @@
   "main": "worker/src/index.js",
   "compatibility_date": "2026-07-30",
   "assets": {
-    "directory": "./frontend",
-    "not_found_handling": "single-page-application"
+    "directory": "./frontend"
   },
   "d1_databases": [
     {

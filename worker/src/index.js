@@ -39,15 +39,6 @@ export default {
       });
     }
 
-    // 后台路径重定向到登录页
-    if (path === '/admin' || path === '/admin/') {
-      return Response.redirect(new URL('/pages/login.html', request.url).toString(), 302);
-    }
-    // 安装路径重定向
-    if (path === '/install' || path === '/install/') {
-      return Response.redirect(new URL('/pages/install.html', request.url).toString(), 302);
-    }
-
     try {
       // 自动初始化数据库（首次请求时建表+插入初始数据）
       await ensureDatabaseInitialized(env.DB);
