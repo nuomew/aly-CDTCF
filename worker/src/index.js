@@ -81,8 +81,8 @@ export default {
       }
 
       // 静态资源由 Workers Static Assets 自动处理
-      // 如果走到这里，说明没有匹配的静态文件和 API 路由
-      return env.ASSETS.fetch(request);
+      // Worker 只处理 /api/ 路由，其他路由走到这里说明是未匹配的路径
+      return new Response('Not Found', { status: 404 });
 
     } catch (err) {
       console.error('请求处理错误:', err);
