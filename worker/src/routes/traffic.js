@@ -5,7 +5,8 @@
 
 import { dbAll, dbOne, dbRun, getConfig, setConfig } from '../lib/db.js';
 import { createBssClient, parseTrafficData } from '../lib/aliyun-api.js';
-import { jsonResponse, errorResponse, formatBytes, nowBeijing, todayBeijing, monthStartBeijing, logOperation, decryptData } from '../lib/helpers.js';
+import { decryptData } from '../lib/auth.js';
+import { jsonResponse, errorResponse, formatBytes, nowBeijing, todayBeijing, monthStartBeijing, logOperation } from '../lib/helpers.js';
 
 /**
  * 处理流量相关路由
