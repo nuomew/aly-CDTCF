@@ -5,25 +5,11 @@
   "description": "阿里云流量查询系统 - Cloudflare Workers 版本",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler d1 execute DB --remote --file=./worker/schema/schema.sql && wrangler d1 execute DB --remote --file=./worker/schema/seed.sql && wrangler deploy",
-    "db:init": "wrangler d1 execute DB --remote --file=./worker/schema/schema.sql",
-    "db:seed": "wrangler d1 execute DB --remote --file=./worker/schema/seed.sql"
+    "deploy": "wrangler deploy",
+    "db:init": "wrangler d1 execute aly-cdtcf --remote --file=./worker/schema/schema.sql",
+    "db:seed": "wrangler d1 execute aly-cdtcf --remote --file=./worker/schema/seed.sql"
   },
   "devDependencies": {
-    "wrangler": "^3.0.0"
-  },
-  "cloudflare": {
-    "bindings": {
-      "DB": {
-        "type": "d1",
-        "description": "**D1 数据库** — 用于存储流量数据、配置、用户等信息。部署时会提示你选择已有数据库或创建新数据库。"
-      },
-      "APP_SECRET": {
-        "description": "**应用加密密钥** — 用于加密存储阿里云 AccessKey Secret。请用 `openssl rand -hex 32` 生成随机字符串。"
-      },
-      "RESEND_API_KEY": {
-        "description": "**Resend 邮件 API Key**（可选）— 用于流量告警邮件。在 [Resend](https://resend.com) 注册获取。不需要邮件功能可留空。"
-      }
-    }
+    "wrangler": "^4.0.0"
   }
 }
