@@ -14,9 +14,7 @@
     }
   ],
   "vars": {
-    "APP_SECRET": "change_me_to_random_secret",
-    "APP_URL": "https://aly-cdtcf.workers.dev",
-    "RESEND_API_KEY": ""
+    "APP_URL": "https://aly-cdtcf.workers.dev"
   },
   "triggers": {
     "crons": ["*/5 * * * *"]
