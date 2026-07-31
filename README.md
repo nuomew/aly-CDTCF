@@ -2,6 +2,14 @@
 
 基于 Cloudflare Workers + D1 数据库的阿里云 CDT 流量监控与 ECS 管理系统，完全 Serverless 部署。
 
+## 一键部署
+
+点击下方按钮，通过 Cloudflare 一键部署本系统：
+
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/nuomew/aly-CDTCF)
+
+> **部署前注意**：一键部署后，仍需手动创建 D1 数据库并执行 `schema.sql`，详见下方"部署指南"。
+
 ## 功能特性
 
 - **流量监控**：多 AccessKey 流量使用情况实时展示，环形进度条 + 趋势图表
