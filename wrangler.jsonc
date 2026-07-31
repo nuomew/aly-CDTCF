@@ -7,6 +7,12 @@
     "directory": "./frontend",
     "binding": "ASSETS"
   },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "aliyun-traffic"
+    }
+  ],
   "vars": {
     "APP_SECRET": "change_me_to_random_secret",
     "APP_URL": "https://aly-cdtcf.workers.dev",
