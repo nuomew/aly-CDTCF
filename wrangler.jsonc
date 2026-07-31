@@ -1,6 +1,6 @@
 {
   "$schema": "https://developers.cloudflare.com/schemas/wrangler.jsonc",
-  "name": "aliyun-traffic",
+  "name": "aly-CDTCF",
   "main": "worker/src/index.js",
   "compatibility_date": "2026-07-30",
   "assets": {
