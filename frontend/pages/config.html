@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>阿里云配置 - 阿里云流量查询系统</title>
+    <style>
+        :root{--sidebar-w:240px;--sidebar-bg:#1a1a2e;--sidebar-hover:#16213e;--sidebar-active:rgba(102,126,234,0.15);--sidebar-active-color:#667eea;--main-bg:#f5f7fa;--card-bg:#fff;--card-radius:12px;--card-shadow:0 2px 12px rgba(0,0,0,0.08);--primary:#667eea;--primary-grad:linear-gradient(135deg,#667eea 0%,#764ba2 100%);--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--text-primary:#1a1a2e;--text-secondary:#6b7280;--border:#e5e7eb}
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--main-bg);color:var(--text-primary);font-size:14px}
+        a{text-decoration:none;color:inherit}
+        .admin-wrapper{display:flex;min-height:100vh}
+        /* 侧边栏 */
+        .sidebar{width:var(--sidebar-w);background:var(--sidebar-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform 0.3s}
+        .sidebar-header{padding:24px 20px;border-bottom:1px solid rgba(255,255,255,0.08)}
+        .sidebar-header h2{color:#fff;font-size:16px;font-weight:700}
+        .sidebar-nav{flex:1;padding:12px 0;overflow-y:auto}
+        .sidebar-nav ul{list-style:none}
+        .sidebar-nav li a{display:flex;align-items:center;padding:12px 24px;color:rgba(255,255,255,0.65);font-size:14px;transition:all 0.2s;gap:12px}
+        .sidebar-nav li a:hover{background:var(--sidebar-hover);color:#fff}
+        .sidebar-nav li.active a{background:var(--sidebar-active);color:var(--sidebar-active-color);border-right:3px solid var(--sidebar-active-color)}
+        .sidebar-nav li a .icon{width:20px;height:20px;flex-shrink:0}.sidebar-nav li a .icon svg{width:20px;height:20px}
+        .sidebar-footer{padding:12px 0;border-top:1px solid rgba(255,255,255,0.08)}
+        .sidebar-footer a{display:flex;align-items:center;padding:12px 24px;color:rgba(255,255,255,0.5);font-size:14px;gap:12px;transition:color 0.2s}
+        .sidebar-footer a:hover{color:var(--danger)}.sidebar-footer a .icon{width:20px;height:20px}.sidebar-footer a .icon svg{width:20px;height:20px}
+        .menu-toggle{display:none;position:fixed;top:16px;left:16px;z-index:200;width:40px;height:40px;background:var(--sidebar-bg);border:none;border-radius:8px;color:#fff;cursor:pointer;align-items:center;justify-content:center}
+        .menu-toggle svg{width:24px;height:24px}
+        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:90}
+        /* 主内容区 */
+        .main-content{flex:1;margin-left:var(--sidebar-w);min-width:0}
+        .topbar{height:64px;background:var(--card-bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:50}
+        .topbar h1{font-size:18px;font-weight:700}
+        .content{padding:24px 32px}
+        /* 按钮 */
+        .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s}
+        .btn-primary{background:var(--primary-grad);color:#fff}.btn-primary:hover{box-shadow:0 4px 12px rgba(102,126,234,0.4)}
+        .btn-success{background:var(--success);color:#fff}.btn-success:hover{opacity:0.9}
+        .btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{opacity:0.9}
+        .btn-warning{background:var(--warning);color:#fff}.btn-warning:hover{opacity:0.9}
+        .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-secondary)}.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+        .btn-sm{padding:5px 10px;font-size:12px}
+        /* 卡片 */
+        .card{background:var(--card-bg);border-radius:var(--card-radius);box-shadow:var(--card-shadow);margin-bottom:24px;overflow:hidden}
+        .card-header{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+        .card-header h3{font-size:16px;font-weight:600}
+        /* 表格 */
+        .table-wrap{overflow-x:auto}
+        table{width:100%;border-collapse:collapse}
+        th{background:#f8fafc;padding:12px 16px;text-align:left;font-weight:600;font-size:13px;color:var(--text-secondary);border-bottom:1px solid var(--border);white-space:nowrap}
+        td{padding:12px 16px;border-bottom:1px solid rgba(0,0,0,0.04);font-size:13px}
+        tr:nth-child(even){background:#fafbfc}
+        tr:hover{background:rgba(102,126,234,0.03)}
+        /* 状态徽章 */
+        .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+        .badge-success{background:rgba(16,185,129,0.1);color:#059669}
+        .badge-danger{background:rgba(239,68,68,0.1);color:#dc2626}
+        .badge-warning{background:rgba(245,158,11,0.1);color:#d97706}
+        .badge-default{background:rgba(102,126,234,0.1);color:var(--primary)}
+        /* 操作按钮组 */
+        .action-btns{display:flex;gap:6px;flex-wrap:wrap}
+        /* 弹窗 */
+        .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center}
+        .modal-overlay.show{display:flex}
+        .modal{background:var(--card-bg);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.3);width:560px;max-width:90vw;max-height:90vh;overflow-y:auto}
+        .modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+        .modal-header h3{font-size:16px;font-weight:700}
+        .modal-close{width:32px;height:32px;border:none;background:transparent;font-size:20px;cursor:pointer;color:var(--text-secondary);border-radius:6px;display:flex;align-items:center;justify-content:center}
+        .modal-close:hover{background:#f3f4f6}
+        .modal-body{padding:24px}
+        .modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:12px}
+        /* 表单 */
+        .form-group{margin-bottom:16px}
+        .form-group label{display:block;font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:6px}
+        .form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:13px;outline:none;transition:border-color 0.2s}
+        .form-group input:focus,.form-group select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(102,126,234,0.1)}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+        .form-hint{font-size:11px;color:var(--text-secondary);margin-top:4px}
+        /* 开关 */
+        .switch{position:relative;width:44px;height:24px;display:inline-block}
+        .switch input{opacity:0;width:0;height:0}
+        .switch .slider{position:absolute;inset:0;background:#ccc;border-radius:24px;cursor:pointer;transition:0.3s}
+        .switch .slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:0.3s}
+        .switch input:checked+.slider{background:var(--primary)}
+        .switch input:checked+.slider:before{transform:translateX(20px)}
+        /* Toast */
+        .toast{position:fixed;top:24px;right:24px;padding:14px 20px;border-radius:10px;color:#fff;font-size:14px;font-weight:500;z-index:9999;transform:translateX(120%);transition:transform 0.3s;max-width:360px}
+        .toast.show{transform:translateX(0)}
+        .toast-success{background:var(--success)}.toast-error{background:var(--danger)}.toast-info{background:var(--primary)}
+        /* 响应式 */
+        @media(max-width:768px){
+            .sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.sidebar-overlay.open{display:block}
+            .menu-toggle{display:flex}.main-content{margin-left:0}.content{padding:16px}.topbar{padding:0 16px 0 56px}
+            .form-row{grid-template-columns:1fr}
+            .modal{margin:16px;width:calc(100vw - 32px)}
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" id="menuToggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div class="admin-wrapper">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header"><h2>流量查询系统</h2></div>
+            <nav class="sidebar-nav"><ul>
+                <li><a href="admin.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span><span>控制台</span></a></li>
+                <li class="active"><a href="config.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9"/></svg></span><span>阿里云配置</span></a></li>
+                <li><a href="traffic.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><span>流量统计</span></a></li>
+                <li><a href="server.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><circle cx="6" cy="6" r="1"/><circle cx="6" cy="18" r="1"/></svg></span><span>服务器管理</span></a></li>
+                <li><a href="system.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span><span>系统设置</span></a></li>
+                <li><a href="mail.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span><span>邮箱配置</span></a></li>
+                <li><a href="logs.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span>操作日志</span></a></li>
+            </ul></nav>
+            <div class="sidebar-footer"><a href="#" id="logoutBtn"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span><span>注销</span></a></div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar"><h1>阿里云配置</h1></header>
+            <div class="content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>配置列表</h3>
+                        <button class="btn btn-primary" onclick="openModal()">+ 添加配置</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>名称</th><th>AK ID</th><th>地域</th><th>状态</th><th>本月流量</th><th>操作</th></tr></thead>
+                            <tbody id="configTable"><tr><td colspan="6" style="text-align:center;padding:40px;color:#6b7280">加载中...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 添加/编辑弹窗 -->
+    <div class="modal-overlay" id="configModal">
+        <div class="modal">
+            <div class="modal-header"><h3 id="modalTitle">添加配置</h3><button class="modal-close" onclick="closeModal()">&times;</button></div>
+            <div class="modal-body">
+                <input type="hidden" id="cfgId">
+                <div class="form-group"><label>配置名称 *</label><input type="text" id="cfgName" placeholder="如：生产环境"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>AccessKey ID *</label><input type="text" id="cfgAK" placeholder="阿里云AK"></div>
+                    <div class="form-group"><label>AccessKey Secret *</label><input type="password" id="cfgSK" placeholder="阿里云SK"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>地域</label>
+                        <select id="cfgRegion">
+                            <option value="cn-hangzhou">华东1(杭州)</option>
+                            <option value="cn-shanghai">华东2(上海)</option>
+                            <option value="cn-beijing">华北2(北京)</option>
+                            <option value="cn-shenzhen">华南1(深圳)</option>
+                            <option value="cn-chengdu">西南1(成都)</option>
+                            <option value="cn-hongkong">中国香港</option>
+                            <option value="ap-southeast-1">新加坡</option>
+                            <option value="ap-southeast-5">雅加达</option>
+                            <option value="us-west-1">美国(硅谷)</option>
+                            <option value="eu-central-1">德国(法兰克福)</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>最大流量(GB)</label><input type="number" id="cfgMaxTraffic" value="200" min="1"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>提醒阈值(%)</label><input type="number" id="cfgAlert" value="80" min="1" max="100"><div class="form-hint">流量使用达到此百分比时发送提醒</div></div>
+                    <div class="form-group"><label>关机阈值(%)</label><input type="number" id="cfgShutdown" value="95" min="1" max="100"><div class="form-hint">流量使用达到此百分比时自动关机</div></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>自动关机</label><div style="padding-top:6px"><label class="switch"><input type="checkbox" id="cfgAutoShutdown"><span class="slider"></span></label></div></div>
+                    <div class="form-group"><label>自动开机日期</label>
+                        <select id="cfgStartDay">
+                            <option value="1">每月1号</option><option value="2">每月2号</option><option value="3">每月3号</option><option value="5">每月5号</option><option value="10">每月10号</option><option value="15">每月15号</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>自动开机时间(时)</label><input type="number" id="cfgStartHour" value="0" min="0" max="23"></div>
+                    <div class="form-group"><label>自动开机时间(分)</label><input type="number" id="cfgStartMinute" value="0" min="0" max="59"></div>
+                </div>
+                <div class="form-group"><label>备注</label><input type="text" id="cfgRemark" placeholder="可选备注信息"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveConfig()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 删除确认弹窗 -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal" style="width:400px">
+            <div class="modal-header"><h3>确认删除</h3><button class="modal-close" onclick="closeDeleteModal()">&times;</button></div>
+            <div class="modal-body"><p>确定要删除配置 "<span id="deleteName"></span>" 吗？<br>此操作将同时删除关联的流量数据，不可恢复。</p></div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeDeleteModal()">取消</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">确认删除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast提示 -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        /**
+         * 阿里云配置管理页面
+         * 功能：配置列表、添加/编辑/删除配置、测试连接、设为默认
+         */
+        (function(){
+            // 检查登录状态
+            checkAuth();
+
+            /**
+             * 检查登录状态
+             */
+            function checkAuth(){
+                fetch('/api/auth/check',{credentials:'same-origin'})
+                    .then(function(r){return r.json()})
+                    .then(function(d){if(!d.logged_in)window.location.href='login.html'})
+                    .catch(function(){window.location.href='login.html'});
+            }
+
+            // 加载配置列表
+            loadConfigs();
+        })();
+
+        /**
+         * 显示Toast提示
+         * @param {string} msg - 提示消息
+         * @param {string} type - 类型：success/error/info
+         */
+        function showToast(msg,type){
+            var t=document.getElementById('toast');
+            t.textContent=msg;
+            t.className='toast toast-'+(type||'info')+' show';
+            setTimeout(function(){t.classList.remove('show')},3000);
+        }
+
+        /**
+         * 加载配置列表
+         */
+        function loadConfigs(){
+            fetch('/api/config/list',{credentials:'same-origin'})
+                .then(function(r){return r.json()})
+                .then(function(list){
+                    var tbody=document.getElementById('configTable');
+                    if(!list||!list.length){
+                        tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:40px;color:#6b7280">暂无配置，点击上方按钮添加</td></tr>';
+                        return;
+                    }
+                    var html='';
+                    list.forEach(function(c){
+                        var statusBadge=c.status===1?'<span class="badge badge-success">启用</span>':'<span class="badge badge-danger">禁用</span>';
+                        var defaultBadge=c.is_default?' <span class="badge badge-default">默认</span>':'';
+                        var traffic=(c.month_traffic_gb||0).toFixed(2)+' / '+(c.max_traffic_gb||200)+' GB';
+                        html+='<tr>'
+                            +'<td><strong>'+esc(c.name)+'</strong>'+defaultBadge+'</td>'
+                            +'<td>'+esc(c.access_key_id)+'</td>'
+                            +'<td>'+esc(c.region_id)+'</td>'
+                            +'<td>'+statusBadge+'</td>'
+                            +'<td>'+traffic+'</td>'
+                            +'<td><div class="action-btns">'
+                            +'<button class="btn btn-outline btn-sm" onclick="editConfig('+c.id+')">编辑</button>'
+                            +'<button class="btn btn-outline btn-sm" onclick="testConfig('+c.id+')">测试</button>'
+                            +(!c.is_default?'<button class="btn btn-outline btn-sm" onclick="setDefault('+c.id+')">设为默认</button>':'')
+                            +'<button class="btn btn-danger btn-sm" onclick="deleteConfig('+c.id+',\''+esc(c.name)+'\')">删除</button>'
+                            +'</div></td></tr>';
+                    });
+                    tbody.innerHTML=html;
+                })
+                .catch(function(){
+                    document.getElementById('configTable').innerHTML='<tr><td colspan="6" style="text-align:center;padding:40px;color:#dc2626">加载失败</td></tr>';
+                });
+        }
+
+        /**
+         * HTML转义
+         * @param {string} s - 原始字符串
+         * @returns {string} 转义后的字符串
+         */
+        function esc(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+        /**
+         * 打开添加配置弹窗
+         */
+        function openModal(){
+            document.getElementById('modalTitle').textContent='添加配置';
+            document.getElementById('cfgId').value='';
+            document.getElementById('cfgName').value='';
+            document.getElementById('cfgAK').value='';
+            document.getElementById('cfgSK').value='';
+            document.getElementById('cfgSK').placeholder='阿里云SK';
+            document.getElementById('cfgRegion').value='cn-hangzhou';
+            document.getElementById('cfgMaxTraffic').value='200';
+            document.getElementById('cfgAlert').value='80';
+            document.getElementById('cfgShutdown').value='95';
+            document.getElementById('cfgAutoShutdown').checked=false;
+            document.getElementById('cfgStartDay').value='1';
+            document.getElementById('cfgStartHour').value='0';
+            document.getElementById('cfgStartMinute').value='0';
+            document.getElementById('cfgRemark').value='';
+            document.getElementById('configModal').classList.add('show');
+        }
+
+        /**
+         * 关闭配置弹窗
+         */
+        function closeModal(){document.getElementById('configModal').classList.remove('show')}
+
+        /**
+         * 编辑配置 - 加载配置数据到弹窗
+         * @param {number} id - 配置ID
+         */
+        function editConfig(id){
+            fetch('/api/config/get?id='+id,{credentials:'same-origin'})
+                .then(function(r){return r.json()})
+                .then(function(c){
+                    document.getElementById('modalTitle').textContent='编辑配置';
+                    document.getElementById('cfgId').value=c.id;
+                    document.getElementById('cfgName').value=c.name||'';
+                    document.getElementById('cfgAK').value=c.access_key_id||'';
+                    document.getElementById('cfgSK').value='';
+                    document.getElementById('cfgSK').placeholder='留空不修改';
+                    document.getElementById('cfgRegion').value=c.region_id||'cn-hangzhou';
+                    document.getElementById('cfgMaxTraffic').value=c.max_traffic_gb||200;
+                    document.getElementById('cfgAlert').value=c.alert_threshold||80;
+                    document.getElementById('cfgShutdown').value=c.shutdown_threshold||95;
+                    document.getElementById('cfgAutoShutdown').checked=!!c.auto_shutdown;
+                    document.getElementById('cfgStartDay').value=c.auto_start_day||1;
+                    document.getElementById('cfgStartHour').value=c.auto_start_hour||0;
+                    document.getElementById('cfgStartMinute').value=c.auto_start_minute||0;
+                    document.getElementById('cfgRemark').value=c.remark||'';
+                    document.getElementById('configModal').classList.add('show');
+                });
+        }
+
+        /**
+         * 保存配置（新增或更新）
+         */
+        function saveConfig(){
+            var id=document.getElementById('cfgId').value;
+            var name=document.getElementById('cfgName').value.trim();
+            var ak=document.getElementById('cfgAK').value.trim();
+            var sk=document.getElementById('cfgSK').value;
+            if(!name){showToast('请输入配置名称','error');return}
+            if(!ak){showToast('请输入AccessKey ID','error');return}
+            if(!id&&!sk){showToast('请输入AccessKey Secret','error');return}
+
+            var body={
+                name:name,access_key_id:ak,region_id:document.getElementById('cfgRegion').value,
+                max_traffic_gb:parseInt(document.getElementById('cfgMaxTraffic').value)||200,
+                alert_threshold:parseInt(document.getElementById('cfgAlert').value)||80,
+                shutdown_threshold:parseInt(document.getElementById('cfgShutdown').value)||95,
+                auto_shutdown:document.getElementById('cfgAutoShutdown').checked,
+                auto_start_day:parseInt(document.getElementById('cfgStartDay').value)||1,
+                auto_start_hour:parseInt(document.getElementById('cfgStartHour').value)||0,
+                auto_start_minute:parseInt(document.getElementById('cfgStartMinute').value)||0,
+                remark:document.getElementById('cfgRemark').value
+            };
+            if(sk)body.access_key_secret=sk;
+            if(id)body.id=parseInt(id);
+
+            var url=id?'/api/config/update':'/api/config/add';
+            fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(body)})
+                .then(function(r){return r.json()})
+                .then(function(d){
+                    if(d.success){showToast(d.message||'保存成功','success');closeModal();loadConfigs()}
+                    else showToast(d.error||'保存失败','error')
+                })
+                .catch(function(){showToast('网络错误','error')});
+        }
+
+        /**
+         * 测试配置连接
+         * @param {number} id - 配置ID
+         */
+        function testConfig(id){
+            showToast('正在测试连接...','info');
+            fetch('/api/config/test',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({id:id})})
+                .then(function(r){return r.json()})
+                .then(function(d){
+                    if(d.success)showToast(d.message||'连接成功','success');
+                    else showToast(d.error||'连接失败','error')
+                })
+                .catch(function(){showToast('测试失败','error')});
+        }
+
+        /**
+         * 设为默认配置
+         * @param {number} id - 配置ID
+         */
+        function setDefault(id){
+            fetch('/api/config/get?id='+id,{credentials:'same-origin'})
+                .then(function(r){return r.json()})
+                .then(function(c){
+                    c.is_default=true;
+                    fetch('/api/config/update',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(c)})
+                        .then(function(r){return r.json()})
+                        .then(function(d){
+                            if(d.success){showToast('已设为默认','success');loadConfigs()}
+                            else showToast(d.error||'操作失败','error')
+                        });
+                });
+        }
+
+        /**
+         * 打开删除确认弹窗
+         * @param {number} id - 配置ID
+         * @param {string} name - 配置名称
+         */
+        function deleteConfig(id,name){
+            document.getElementById('deleteName').textContent=name;
+            document.getElementById('deleteModal').classList.add('show');
+            document.getElementById('confirmDeleteBtn').onclick=function(){
+                fetch('/api/config/delete',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({id:id})})
+                    .then(function(r){return r.json()})
+                    .then(function(d){
+                        if(d.success){showToast('删除成功','success');closeDeleteModal();loadConfigs()}
+                        else showToast(d.error||'删除失败','error')
+                    })
+                    .catch(function(){showToast('删除失败','error')});
+            };
+        }
+
+        /** 关闭删除弹窗 */
+        function closeDeleteModal(){document.getElementById('deleteModal').classList.remove('show')}
+
+        // 注销
+        document.getElementById('logoutBtn').addEventListener('click',function(e){
+            e.preventDefault();
+            fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'}).then(function(){window.location.href='login.html'})
+        });
+        // 手机端侧边栏
+        document.getElementById('menuToggle').addEventListener('click',function(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('open')});
+        document.getElementById('sidebarOverlay').addEventListener('click',function(){document.getElementById('sidebar').classList.remove('open');this.classList.remove('open')});
+    </script>
+</body>
+</html>

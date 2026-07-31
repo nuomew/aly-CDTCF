@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统安装向导</title>
+    <style>
+        /* 重置默认样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 页面主体 - 紫色渐变背景 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        /* 主容器卡片 */
+        .install-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 520px;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 顶部装饰条 */
+        .install-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        /* 步骤指示器容器 */
+        .steps-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 0 20px;
+        }
+
+        /* 步骤圆点 */
+        .step-dot {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #999;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* 活动状态的步骤圆点 */
+        .step-dot.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        /* 已完成状态的步骤圆点 */
+        .step-dot.completed {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+        }
+
+        /* 步骤连线 */
+        .step-line {
+            flex: 1;
+            height: 2px;
+            background: #e0e0e0;
+            margin: 0 8px;
+            transition: background 0.3s ease;
+        }
+
+        /* 已完成的连线 */
+        .step-line.completed {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        /* 步骤内容区域 */
+        .step-content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        /* 当前活动的步骤内容 */
+        .step-content.active {
+            display: block;
+        }
+
+        /* 淡入动画 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 步骤标题 */
+        .step-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        /* 步骤描述 */
+        .step-desc {
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        /* 功能介绍列表 */
+        .feature-list {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+
+        .feature-list li {
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.08));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .feature-list li::before {
+            content: '✓';
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            border-radius: 50%;
+            font-size: 12px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        /* 表单组 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        /* 表单标签 */
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        /* 可选标记 */
+        .form-group label .optional {
+            font-weight: 400;
+            color: #999;
+            font-size: 12px;
+        }
+
+        /* 输入框样式 */
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            outline: none;
+            background: #fafafa;
+        }
+
+        /* 输入框聚焦状态 */
+        .form-group input:focus {
+            border-color: #667eea;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        /* 输入框错误状态 */
+        .form-group input.error {
+            border-color: #e74c3c;
+            background: #fff5f5;
+        }
+
+        /* 错误提示文字 */
+        .error-message {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 6px;
+            display: none;
+        }
+
+        /* 显示错误提示 */
+        .error-message.show {
+            display: block;
+        }
+
+        /* 按钮容器 */
+        .btn-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 12px;
+        }
+
+        /* 按钮基础样式 */
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 主按钮 - 紫色渐变 */
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* 主按钮悬停效果 */
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* 次按钮 */
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        /* 次按钮悬停效果 */
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        /* 按钮禁用状态 */
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* 加载动画 */
+        .btn .spinner {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        /* 显示加载动画 */
+        .btn.loading .spinner {
+            display: inline-block;
+        }
+
+        /* 旋转动画 */
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 完成页面图标 */
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 40px;
+            color: #fff;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        /* 完成页面信息 */
+        .success-info {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.08));
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        /* 全局错误提示 */
+        .global-error {
+            background: #fff5f5;
+            border: 1px solid #e74c3c;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            color: #e74c3c;
+            font-size: 14px;
+            display: none;
+        }
+
+        .global-error.show {
+            display: block;
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 480px) {
+            .install-card {
+                padding: 24px;
+            }
+
+            .step-title {
+                font-size: 20px;
+            }
+
+            .btn {
+                padding: 10px 20px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 安装向导主容器 -->
+    <div class="install-card">
+        <!-- 步骤指示器 -->
+        <div class="steps-indicator">
+            <div class="step-dot active" data-step="1">1</div>
+            <div class="step-line" id="line1"></div>
+            <div class="step-dot" data-step="2">2</div>
+            <div class="step-line" id="line2"></div>
+            <div class="step-dot" data-step="3">3</div>
+        </div>
+
+        <!-- 第1步：欢迎页 -->
+        <div class="step-content active" id="step1">
+            <h2 class="step-title">欢迎使用系统安装向导</h2>
+            <p class="step-desc">感谢您选择本系统，接下来将引导您完成安装配置</p>
+
+            <!-- 功能介绍列表 -->
+            <ul class="feature-list">
+                <li>阿里云流量监控与管理</li>
+                <li>ECS 服务器实例管理</li>
+                <li>流量数据可视化分析</li>
+                <li>定时任务与自动告警</li>
+                <li>安全可靠的权限管理</li>
+            </ul>
+
+            <!-- 下一步按钮 -->
+            <div class="btn-group">
+                <div></div>
+                <button class="btn btn-primary" onclick="nextStep(2)">开始安装 →</button>
+            </div>
+        </div>
+
+        <!-- 第2步：创建管理员账号 -->
+        <div class="step-content" id="step2">
+            <h2 class="step-title">创建管理员账号</h2>
+            <p class="step-desc">请设置您的管理员账号信息</p>
+
+            <!-- 全局错误提示 -->
+            <div class="global-error" id="globalError"></div>
+
+            <!-- 管理员表单 -->
+            <form id="adminForm" onsubmit="return false;">
+                <!-- 用户名 -->
+                <div class="form-group">
+                    <label for="username">用户名 *</label>
+                    <input type="text" id="username" name="username" placeholder="请输入用户名（3-20个字符）" maxlength="20" required>
+                    <div class="error-message" id="usernameError"></div>
+                </div>
+
+                <!-- 密码 -->
+                <div class="form-group">
+                    <label for="password">密码 *</label>
+                    <input type="password" id="password" name="password" placeholder="请输入密码（至少6位）" required>
+                    <div class="error-message" id="passwordError"></div>
+                </div>
+
+                <!-- 确认密码 -->
+                <div class="form-group">
+                    <label for="confirmPassword">确认密码 *</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="请再次输入密码" required>
+                    <div class="error-message" id="confirmPasswordError"></div>
+                </div>
+
+                <!-- 邮箱 -->
+                <div class="form-group">
+                    <label for="email">邮箱 <span class="optional">（选填）</span></label>
+                    <input type="email" id="email" name="email" placeholder="请输入邮箱地址">
+                    <div class="error-message" id="emailError"></div>
+                </div>
+
+                <!-- 昵称 -->
+                <div class="form-group">
+                    <label for="nickname">昵称</label>
+                    <input type="text" id="nickname" name="nickname" placeholder="请输入昵称（选填）" maxlength="30">
+                    <div class="error-message" id="nicknameError"></div>
+                </div>
+
+                <!-- 按钮组 -->
+                <div class="btn-group">
+                    <button type="button" class="btn btn-secondary" onclick="prevStep(1)">← 上一步</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn" onclick="submitAdmin()">
+                        <span class="spinner"></span>
+                        创建账号
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 第3步：完成提示 -->
+        <div class="step-content" id="step3">
+            <!-- 成功图标 -->
+            <div class="success-icon">✓</div>
+
+            <h2 class="step-title">安装完成！</h2>
+            <p class="step-desc">管理员账号已创建成功</p>
+
+            <!-- 完成信息 -->
+            <div class="success-info">
+                <p><strong>恭喜！</strong>系统已成功安装配置。</p>
+                <p style="margin-top: 8px;">您现在可以使用管理员账号登录后台管理系统。</p>
+            </div>
+
+            <!-- 跳转按钮 -->
+            <div class="btn-group" style="justify-content: center;">
+                <button class="btn btn-primary" onclick="goToAdmin()">进入管理后台 →</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * 安装向导主控制器
+         * 管理步骤切换、表单验证和API调用
+         */
+
+        // 当前步骤
+        let currentStep = 1;
+
+        /**
+         * 切换到下一步
+         * @param {number} step - 目标步骤号
+         */
+        function nextStep(step) {
+            // 隐藏当前步骤
+            document.getElementById(`step${currentStep}`).classList.remove('active');
+
+            // 显示目标步骤
+            document.getElementById(`step${step}`).classList.add('active');
+
+            // 更新步骤指示器状态
+            updateStepIndicator(step);
+
+            // 更新当前步骤
+            currentStep = step;
+        }
+
+        /**
+         * 返回上一步
+         * @param {number} step - 目标步骤号
+         */
+        function prevStep(step) {
+            // 隐藏当前步骤
+            document.getElementById(`step${currentStep}`).classList.remove('active');
+
+            // 显示目标步骤
+            document.getElementById(`step${step}`).classList.add('active');
+
+            // 更新步骤指示器状态
+            updateStepIndicator(step);
+
+            // 更新当前步骤
+            currentStep = step;
+
+            // 清除所有错误提示
+            clearErrors();
+        }
+
+        /**
+         * 更新步骤指示器样式
+         * @param {number} activeStep - 当前活动步骤
+         */
+        function updateStepIndicator(activeStep) {
+            // 更新圆点状态
+            document.querySelectorAll('.step-dot').forEach((dot, index) => {
+                const stepNum = index + 1;
+                dot.classList.remove('active', 'completed');
+
+                if (stepNum === activeStep) {
+                    dot.classList.add('active');
+                } else if (stepNum < activeStep) {
+                    dot.classList.add('completed');
+                    dot.innerHTML = '✓';
+                } else {
+                    dot.innerHTML = stepNum;
+                }
+            });
+
+            // 更新连线状态
+            document.getElementById('line1').classList.toggle('completed', activeStep > 1);
+            document.getElementById('line2').classList.toggle('completed', activeStep > 2);
+        }
+
+        /**
+         * 清除所有错误提示
+         */
+        function clearErrors() {
+            // 清除输入框错误样式
+            document.querySelectorAll('.form-group input').forEach(input => {
+                input.classList.remove('error');
+            });
+
+            // 清除错误消息
+            document.querySelectorAll('.error-message').forEach(msg => {
+                msg.classList.remove('show');
+                msg.textContent = '';
+            });
+
+            // 清除全局错误
+            const globalError = document.getElementById('globalError');
+            globalError.classList.remove('show');
+            globalError.textContent = '';
+        }
+
+        /**
+         * 显示字段错误
+         * @param {string} fieldId - 字段ID
+         * @param {string} message - 错误消息
+         */
+        function showFieldError(fieldId, message) {
+            const input = document.getElementById(fieldId);
+            const errorDiv = document.getElementById(`${fieldId}Error`);
+
+            input.classList.add('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+
+        /**
+         * 显示全局错误
+         * @param {string} message - 错误消息
+         */
+        function showGlobalError(message) {
+            const globalError = document.getElementById('globalError');
+            globalError.textContent = message;
+            globalError.classList.add('show');
+        }
+
+        /**
+         * 验证表单
+         * @returns {boolean} 验证是否通过
+         */
+        function validateForm() {
+            // 清除之前的错误
+            clearErrors();
+
+            let isValid = true;
+
+            // 获取表单值
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const email = document.getElementById('email').value.trim();
+
+            // 验证用户名
+            if (!username) {
+                showFieldError('username', '请输入用户名');
+                isValid = false;
+            } else if (username.length < 3 || username.length > 20) {
+                showFieldError('username', '用户名长度需要在3-20个字符之间');
+                isValid = false;
+            }
+
+            // 验证密码
+            if (!password) {
+                showFieldError('password', '请输入密码');
+                isValid = false;
+            } else if (password.length < 6) {
+                showFieldError('password', '密码长度至少需要6位');
+                isValid = false;
+            }
+
+            // 验证确认密码
+            if (!confirmPassword) {
+                showFieldError('confirmPassword', '请再次输入密码');
+                isValid = false;
+            } else if (password !== confirmPassword) {
+                showFieldError('confirmPassword', '两次输入的密码不一致');
+                isValid = false;
+            }
+
+            // 验证邮箱（选填，但填了就要验证格式）
+            if (email && !isValidEmail(email)) {
+                showFieldError('email', '请输入正确的邮箱格式');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        /**
+         * 验证邮箱格式
+         * @param {string} email - 邮箱地址
+         * @returns {boolean} 是否为有效邮箱
+         */
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        /**
+         * 提交管理员账号创建请求
+         */
+        async function submitAdmin() {
+            // 防止重复提交
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn.classList.contains('loading')) {
+                return;
+            }
+
+            // 表单验证
+            if (!validateForm()) {
+                return;
+            }
+
+            // 获取表单数据
+            const formData = {
+                username: document.getElementById('username').value.trim(),
+                password: document.getElementById('password').value,
+                email: document.getElementById('email').value.trim() || undefined,
+                nickname: document.getElementById('nickname').value.trim() || undefined
+            };
+
+            // 移除空值字段
+            Object.keys(formData).forEach(key => {
+                if (formData[key] === undefined) {
+                    delete formData[key];
+                }
+            });
+
+            // 显示加载状态
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+
+            try {
+                // 调用安装API
+                const response = await fetch('/api/auth/install', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    // 安装成功，进入下一步
+                    nextStep(3);
+                } else {
+                    // 显示错误信息
+                    const errorMsg = result.message || result.error || '安装失败，请重试';
+                    showGlobalError(errorMsg);
+                }
+            } catch (error) {
+                // 网络错误
+                console.error('安装请求失败:', error);
+                showGlobalError('网络错误，请检查连接后重试');
+            } finally {
+                // 恢复按钮状态
+                submitBtn.classList.remove('loading');
+                submitBtn.disabled = false;
+            }
+        }
+
+        /**
+         * 跳转到管理后台页面
+         */
+        function goToAdmin() {
+            window.location.href = '/pages/admin.html';
+        }
+
+        /**
+         * 页面加载完成后的初始化
+         */
+        document.addEventListener('DOMContentLoaded', function() {
+            // 为输入框添加实时验证（失去焦点时）
+            document.getElementById('username').addEventListener('blur', function() {
+                const value = this.value.trim();
+                if (value && (value.length < 3 || value.length > 20)) {
+                    showFieldError('username', '用户名长度需要在3-20个字符之间');
+                } else {
+                    this.classList.remove('error');
+                    document.getElementById('usernameError').classList.remove('show');
+                }
+            });
+
+            document.getElementById('password').addEventListener('blur', function() {
+                const value = this.value;
+                if (value && value.length < 6) {
+                    showFieldError('password', '密码长度至少需要6位');
+                } else {
+                    this.classList.remove('error');
+                    document.getElementById('passwordError').classList.remove('show');
+                }
+            });
+
+            document.getElementById('confirmPassword').addEventListener('blur', function() {
+                const password = document.getElementById('password').value;
+                const value = this.value;
+                if (value && value !== password) {
+                    showFieldError('confirmPassword', '两次输入的密码不一致');
+                } else {
+                    this.classList.remove('error');
+                    document.getElementById('confirmPasswordError').classList.remove('show');
+                }
+            });
+
+            document.getElementById('email').addEventListener('blur', function() {
+                const value = this.value.trim();
+                if (value && !isValidEmail(value)) {
+                    showFieldError('email', '请输入正确的邮箱格式');
+                } else {
+                    this.classList.remove('error');
+                    document.getElementById('emailError').classList.remove('show');
+                }
+            });
+
+            // 监听表单回车事件
+            document.getElementById('adminForm').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    submitAdmin();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

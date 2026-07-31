@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>邮箱配置 - 阿里云流量查询系统</title>
+    <style>
+        :root{--sidebar-w:240px;--sidebar-bg:#1a1a2e;--sidebar-hover:#16213e;--sidebar-active:rgba(102,126,234,0.15);--sidebar-active-color:#667eea;--main-bg:#f5f7fa;--card-bg:#fff;--card-radius:12px;--card-shadow:0 2px 12px rgba(0,0,0,0.08);--primary:#667eea;--primary-grad:linear-gradient(135deg,#667eea 0%,#764ba2 100%);--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--text-primary:#1a1a2e;--text-secondary:#6b7280;--border:#e5e7eb}
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--main-bg);color:var(--text-primary);font-size:14px}
+        a{text-decoration:none;color:inherit}
+        .admin-wrapper{display:flex;min-height:100vh}
+        .sidebar{width:var(--sidebar-w);background:var(--sidebar-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform 0.3s}
+        .sidebar-header{padding:24px 20px;border-bottom:1px solid rgba(255,255,255,0.08)}.sidebar-header h2{color:#fff;font-size:16px;font-weight:700}
+        .sidebar-nav{flex:1;padding:12px 0;overflow-y:auto}.sidebar-nav ul{list-style:none}
+        .sidebar-nav li a{display:flex;align-items:center;padding:12px 24px;color:rgba(255,255,255,0.65);font-size:14px;transition:all 0.2s;gap:12px}
+        .sidebar-nav li a:hover{background:var(--sidebar-hover);color:#fff}
+        .sidebar-nav li.active a{background:var(--sidebar-active);color:var(--sidebar-active-color);border-right:3px solid var(--sidebar-active-color)}
+        .sidebar-nav li a .icon{width:20px;height:20px;flex-shrink:0}.sidebar-nav li a .icon svg{width:20px;height:20px}
+        .sidebar-footer{padding:12px 0;border-top:1px solid rgba(255,255,255,0.08)}
+        .sidebar-footer a{display:flex;align-items:center;padding:12px 24px;color:rgba(255,255,255,0.5);font-size:14px;gap:12px;transition:color 0.2s}
+        .sidebar-footer a:hover{color:var(--danger)}.sidebar-footer a .icon{width:20px;height:20px}.sidebar-footer a .icon svg{width:20px;height:20px}
+        .menu-toggle{display:none;position:fixed;top:16px;left:16px;z-index:200;width:40px;height:40px;background:var(--sidebar-bg);border:none;border-radius:8px;color:#fff;cursor:pointer;align-items:center;justify-content:center}
+        .menu-toggle svg{width:24px;height:24px}.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:90}
+        .main-content{flex:1;margin-left:var(--sidebar-w);min-width:0}
+        .topbar{height:64px;background:var(--card-bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:50}
+        .topbar h1{font-size:18px;font-weight:700}.content{padding:24px 32px}
+        .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s}
+        .btn-primary{background:var(--primary-grad);color:#fff}.btn-primary:hover{box-shadow:0 4px 12px rgba(102,126,234,0.4)}
+        .btn-success{background:var(--success);color:#fff}.btn-success:hover{opacity:0.9}
+        .btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{opacity:0.9}
+        .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-secondary)}.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+        .btn-sm{padding:5px 10px;font-size:12px}
+        .card{background:var(--card-bg);border-radius:var(--card-radius);box-shadow:var(--card-shadow);margin-bottom:24px;overflow:hidden}
+        .card-header{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+        .card-header h3{font-size:16px;font-weight:600}
+        .table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse}
+        th{background:#f8fafc;padding:12px 16px;text-align:left;font-weight:600;font-size:13px;color:var(--text-secondary);border-bottom:1px solid var(--border);white-space:nowrap}
+        td{padding:12px 16px;border-bottom:1px solid rgba(0,0,0,0.04);font-size:13px}
+        tr:nth-child(even){background:#fafbfc}tr:hover{background:rgba(102,126,234,0.03)}
+        .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+        .badge-success{background:rgba(16,185,129,0.1);color:#059669}
+        .badge-danger{background:rgba(239,68,68,0.1);color:#dc2626}
+        .badge-default{background:rgba(102,126,234,0.1);color:var(--primary)}
+        .action-btns{display:flex;gap:6px;flex-wrap:wrap}
+        /* 弹窗 */
+        .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center}
+        .modal-overlay.show{display:flex}
+        .modal{background:var(--card-bg);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.3);width:520px;max-width:90vw;max-height:90vh;overflow-y:auto}
+        .modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+        .modal-header h3{font-size:16px;font-weight:700}
+        .modal-close{width:32px;height:32px;border:none;background:transparent;font-size:20px;cursor:pointer;color:var(--text-secondary);border-radius:6px;display:flex;align-items:center;justify-content:center}
+        .modal-close:hover{background:#f3f4f6}
+        .modal-body{padding:24px}
+        .modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:12px}
+        .form-group{margin-bottom:16px}
+        .form-group label{display:block;font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:6px}
+        .form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:13px;outline:none;transition:border-color 0.2s}
+        .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(102,126,234,0.1)}
+        .form-group textarea{min-height:200px;resize:vertical;font-family:monospace}
+        .switch{position:relative;width:44px;height:24px;display:inline-block}
+        .switch input{opacity:0;width:0;height:0}
+        .switch .slider{position:absolute;inset:0;background:#ccc;border-radius:24px;cursor:pointer;transition:0.3s}
+        .switch .slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:0.3s}
+        .switch input:checked+.slider{background:var(--primary)}
+        .switch input:checked+.slider:before{transform:translateX(20px)}
+        .empty-msg{padding:40px;text-align:center;color:var(--text-secondary)}
+        .toast{position:fixed;top:24px;right:24px;padding:14px 20px;border-radius:10px;color:#fff;font-size:14px;font-weight:500;z-index:9999;transform:translateX(120%);transition:transform 0.3s;max-width:360px}
+        .toast.show{transform:translateX(0)}.toast-success{background:var(--success)}.toast-error{background:var(--danger)}.toast-info{background:var(--primary)}
+        @media(max-width:768px){
+            .sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.sidebar-overlay.open{display:block}
+            .menu-toggle{display:flex}.main-content{margin-left:0}.content{padding:16px}.topbar{padding:0 16px 0 56px}
+            .modal{margin:16px}
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" id="menuToggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div class="admin-wrapper">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header"><h2>流量查询系统</h2></div>
+            <nav class="sidebar-nav"><ul>
+                <li><a href="admin.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span><span>控制台</span></a></li>
+                <li><a href="config.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9"/></svg></span><span>阿里云配置</span></a></li>
+                <li><a href="traffic.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><span>流量统计</span></a></li>
+                <li><a href="server.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><circle cx="6" cy="6" r="1"/><circle cx="6" cy="18" r="1"/></svg></span><span>服务器管理</span></a></li>
+                <li><a href="system.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span><span>系统设置</span></a></li>
+                <li class="active"><a href="mail.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span><span>邮箱配置</span></a></li>
+                <li><a href="logs.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span>操作日志</span></a></li>
+            </ul></nav>
+            <div class="sidebar-footer"><a href="#" id="logoutBtn"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span><span>注销</span></a></div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar"><h1>邮箱配置</h1></header>
+            <div class="content">
+                <!-- 邮箱配置列表 -->
+                <div class="card">
+                    <div class="card-header"><h3>邮箱配置列表</h3><button class="btn btn-primary" onclick="openMailModal()">+ 添加配置</button></div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>名称</th><th>发件人</th><th>收件人</th><th>状态</th><th>默认</th><th>操作</th></tr></thead>
+                            <tbody id="mailTable"><tr><td colspan="6" class="empty-msg">加载中...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 邮件模板列表 -->
+                <div class="card">
+                    <div class="card-header"><h3>邮件模板</h3></div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>模板名</th><th>主题</th><th>状态</th><th>操作</th></tr></thead>
+                            <tbody id="templateTable"><tr><td colspan="4" class="empty-msg">加载中...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 邮箱配置弹窗 -->
+    <div class="modal-overlay" id="mailModal">
+        <div class="modal">
+            <div class="modal-header"><h3 id="mailModalTitle">添加邮箱配置</h3><button class="modal-close" onclick="closeMailModal()">&times;</button></div>
+            <div class="modal-body">
+                <input type="hidden" id="mailId">
+                <div class="form-group"><label>配置名称 *</label><input type="text" id="mailName" placeholder="如：告警通知"></div>
+                <div class="form-group"><label>Resend API Key *</label><input type="password" id="mailApiKey" placeholder="re_xxxxxxxx"><div style="font-size:11px;color:#6b7280;margin-top:4px">从 <a href="https://resend.com" target="_blank" style="color:var(--primary)">resend.com</a> 获取</div></div>
+                <div class="form-group"><label>发件人邮箱 *</label><input type="email" id="mailFrom" placeholder="noreply@example.com"></div>
+                <div class="form-group"><label>发件人名称</label><input type="text" id="mailFromName" placeholder="流量监控系统"></div>
+                <div class="form-group"><label>收件人邮箱</label><input type="text" id="mailTo" placeholder="多个邮箱用逗号分隔"></div>
+                <div class="form-group"><label>设为默认</label><div style="padding-top:4px"><label class="switch"><input type="checkbox" id="mailDefault"><span class="slider"></span></label></div></div>
+                <div class="form-group"><label>启用</label><div style="padding-top:4px"><label class="switch"><input type="checkbox" id="mailStatus" checked><span class="slider"></span></label></div></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeMailModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveMailConfig()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 邮件模板编辑弹窗 -->
+    <div class="modal-overlay" id="templateModal">
+        <div class="modal" style="width:640px">
+            <div class="modal-header"><h3>编辑邮件模板</h3><button class="modal-close" onclick="closeTemplateModal()">&times;</button></div>
+            <div class="modal-body">
+                <input type="hidden" id="tplId">
+                <div class="form-group"><label>模板名称</label><input type="text" id="tplName" readonly style="background:#f8fafc"></div>
+                <div class="form-group"><label>邮件主题</label><input type="text" id="tplSubject"></div>
+                <div class="form-group"><label>模板状态</label><div style="padding-top:4px"><label class="switch"><input type="checkbox" id="tplStatus" checked><span class="slider"></span></label></div></div>
+                <div class="form-group"><label>邮件正文（支持HTML）</label><textarea id="tplBody" placeholder="输入HTML邮件正文..."></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeTemplateModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveTemplate()">保存模板</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        /**
+         * 邮箱配置和模板管理页面
+         * 功能：邮箱配置CRUD、邮件模板编辑、测试发送
+         */
+        (function(){
+            fetch('/api/auth/check',{credentials:'same-origin'})
+                .then(function(r){return r.json()})
+                .then(function(d){if(!d.logged_in)window.location.href='login.html'})
+                .catch(function(){window.location.href='login.html'});
+            loadMailConfigs();
+            loadTemplates();
+        })();
+
+        function showToast(msg,type){
+            var t=document.getElementById('toast');t.textContent=msg;
+            t.className='toast toast-'+(type||'info')+' show';
+            setTimeout(function(){t.classList.remove('show')},3000);
+        }
+        function esc(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+        /* ===== 邮箱配置 ===== */
+
+        /**
+         * 加载邮箱配置列表
+         */
+        function loadMailConfigs(){
+            fetch('/api/system/mail/list',{credentials:'same-origin'})
+                .then(function(r){return r.json()})
+                .then(function(list){
+                    var tbody=document.getElementById('mailTable');
+                    if(!list||!list.length){tbody.innerHTML='<tr><td colspan="6" class="empty-msg">暂无邮箱配置</td></tr>';return}
+                    var html='';
+                    list.forEach(function(c){
+                        html+='<tr>'
+                            +'<td>'+esc(c.config_name)+(c.is_default?' <span class="badge badge-default">默认</span>':'')+'</td>'
+                            +'<td>'+esc(c.from_email)+'</td>'
+                            +'<td>'+esc(c.to_emails||'-')+'</td>'
+                            +'<td>'+(c.status===1?'<span class="badge badge-success">启用</span>':'<span class="badge badge-danger">禁用</span>')+'</td>'
+                            +'<td>'+(c.is_default?'是':'否')+'</td>'
+                            +'<td><div class="action-btns">'
+                            +'<button class="btn btn-outline btn-sm" onclick="editMail('+c.id+')">编辑</button>'
+                            +'<button class="btn btn-success btn-sm" onclick="testMail('+c.id+')">测试</button>'
+                            +'<button class="btn btn-danger btn-sm" onclick="deleteMail('+c.id+')">删除</button>'
+                            +'</div></td></tr>';
+                    });
+                    tbody.innerHTML=html;
+                });
+        }
+
+        function openMailModal(){
+            document.getElementById('mailModalTitle').textContent='添加邮箱配置';
+            document.getElementById('mailId').value='';
+            document.getElementById('mailName').value='';
+            document.getElementById('mailApiKey').value='';
+            document.getElementById('mailApiKey').placeholder='re_xxxxxxxx';
+            document.getElementById('mailFrom').value='';
+            document.getElementById('mailFromName').value='';
+            document.getElementById('mailTo').value='';
+            document.getElementById('mailDefault').checked=false;
+            document.getElementById('mailStatus').checked=true;
+            document.getElementById('mailModal').classList.add('show');
+        }
+        function closeMailModal(){document.getElementById('mailModal').classList.remove('show')}
+
+        /**
+         * 编辑邮箱配置
+         * @param {number} id - 配置ID
+         */
+        function editMail(id){
+            fetch('/api/system/mail/list',{credentials:'same-origin'})
+                .then(function(r){return r.json()})
+                .then(function(list){
+                    var c=list.find(function(x){return x.id===id});
+                    if(!c)return;
+                    document.getElementById('mailModalTitle').textContent='编辑邮箱配置';
+                    document.getElementById('mailId').value=c.id;
+                    document.getElementById('mailName').value=c.config_name||'';
+                    document.getElementById('mailApiKey').value='';
+                    document.getElementById('mailApiKey').placeholder='留空不修改';
+                    document.getElementById('mailFrom').value=c.from_email||'';
+                    document.getElementById('mailFromName').value=c.from_name||'';
+                    document.getElementById('mailTo').value=c.to_emails||'';
+                    document.getElementById('mailDefault').checked=!!c.is_default;
+                    document.getElementById('mailStatus').checked=c.status===1;
+                    document.getElementById('mailModal').classList.add('show');
+                });
+        }
+
+        /**
+         * 保存邮箱配置
+         */
+        function saveMailConfig(){
+            var name=document.getElementById('mailName').value.trim();
+            var from=document.getElementById('mailFrom').value.trim();
+            if(!name){showToast('请输入配置名称','error');return}
+            if(!from){showToast('请输入发件人邮箱','error');return}
+            var body={
+                config_name:name,
+                from_email:from,
+                from_name:document.getElementById('mailFromName').value.trim(),
+                to_emails:document.getElementById('mailTo').value.trim(),
+                is_default:document.getElementById('mailDefault').checked,
+                status:document.getElementById('mailStatus').checked?1:0
+            };
+            var id=document.getElementById('mailId').value;
+            if(id)body.id=parseInt(id);
+            var key=document.getElementById('mailApiKey').value;
+            if(key)body.resend_api_key=key;
+
+            fetch('/api/system/mail/save',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(body)})
+                .then(function(r){return r.json()})
+                .then(function(d){
+                    if(d.success){showToast(d.message||'保存成功','success');closeMailModal();loadMailConfigs()}
+                    else showToast(d.error||'保存失败','error')
+                })
+                .catch(function(){showToast('保存失败','error')});
+        }
+
+        /**
+         * 测试邮件发送
+         * @param {number} id - 配置ID
+         */
+        function testMail(id){
+            showToast('正在发送测试邮件...','info');
+            fetch('/api/system/mail/test',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({id:id})})
+                .then(function(r){return r.json()})
+                .then(function(d){
+                    if(d.success)showToast(d.message||'发送成功','success');
+                    else showToast(d.error||'发送失败','error')
+                })
+                .catch(function(){showToast('发送失败','error')});
+        }
+
+        /**
+         * 删除邮箱配置
+         * @param {number} id - 配置ID
+         */
+        function deleteMail(id){
+            if(!confirm('确定要删除此邮箱配置吗？'))return;
+            fetch('/api/system/mail/delete',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({id:id})})
+                .then(function(r){return r.json()})
+                .then(function(d){
+                    if(d.success){showToast('删除成功','success');loadMailConfigs()}
+                    else showToast(d.error||'删除失败','error')
+                });
+        }
+
+        /* ===== 邮件模板 ===== */
+
+        /**
+         * 加载邮件模板列表
+         */
+        function loadTemplates(){
+            fetch('/api/system/mail-template/list',{credentials:'same-origin'})
+                .then(function(r){return r.json()})
+                .then(function(list){
+                    var tbody=document.getElementById('templateTable');
+                    if(!list||!list.length){tbody.innerHTML='<tr><td colspan="4" class="empty-msg">暂无模板</td></tr>';return}
+                    var html='';
+                    list.forEach(function(t){
+                        html+='<tr>'
+                            +'<td>'+esc(t.template_name||t.template_key)+'</td>'
+                            +'<td>'+esc(t.subject)+'</td>'
+                            +'<td>'+(t.status===1?'<span class="badge badge-success">启用</span>':'<span class="badge badge-danger">禁用</span>')+'</td>'
+                            +'<td><button class="btn btn-outline btn-sm" onclick="editTemplate('+t.id+')">编辑</button></td>'
+                            +'</tr>';
+                    });
+                    tbody.innerHTML=html;
+                });
+        }
+
+        /**
+         * 编辑邮件模板
+         * @param {number} id - 模板ID
+         */
+        function editTemplate(id){
+            fetch('/api/system/mail-template/list',{credentials:'same-origin'})
+                .then(function(r){return r.json()})
+                .then(function(list){
+                    var t=list.find(function(x){return x.id===id});
+                    if(!t)return;
+                    document.getElementById('tplId').value=t.id;
+                    document.getElementById('tplName').value=t.template_name||t.template_key||'';
+                    document.getElementById('tplSubject').value=t.subject||'';
+                    document.getElementById('tplBody').value=t.body||'';
+                    document.getElementById('tplStatus').checked=t.status===1;
+                    document.getElementById('templateModal').classList.add('show');
+                });
+        }
+        function closeTemplateModal(){document.getElementById('templateModal').classList.remove('show')}
+
+        /**
+         * 保存邮件模板
+         */
+        function saveTemplate(){
+            var body={
+                id:parseInt(document.getElementById('tplId').value),
+                subject:document.getElementById('tplSubject').value.trim(),
+                body:document.getElementById('tplBody').value,
+                status:document.getElementById('tplStatus').checked?1:0
+            };
+            fetch('/api/system/mail-template/save',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(body)})
+                .then(function(r){return r.json()})
+                .then(function(d){
+                    if(d.success){showToast(d.message||'保存成功','success');closeTemplateModal();loadTemplates()}
+                    else showToast(d.error||'保存失败','error')
+                })
+                .catch(function(){showToast('保存失败','error')});
+        }
+
+        // 注销
+        document.getElementById('logoutBtn').addEventListener('click',function(e){
+            e.preventDefault();
+            fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'}).then(function(){window.location.href='login.html'})
+        });
+        document.getElementById('menuToggle').addEventListener('click',function(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('open')});
+        document.getElementById('sidebarOverlay').addEventListener('click',function(){document.getElementById('sidebar').classList.remove('open');this.classList.remove('open')});
+    </script>
+</body>
+</html>

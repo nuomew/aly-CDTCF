@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>流量统计 - 阿里云流量查询系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root{--sidebar-w:240px;--sidebar-bg:#1a1a2e;--sidebar-hover:#16213e;--sidebar-active:rgba(102,126,234,0.15);--sidebar-active-color:#667eea;--main-bg:#f5f7fa;--card-bg:#fff;--card-radius:12px;--card-shadow:0 2px 12px rgba(0,0,0,0.08);--primary:#667eea;--primary-grad:linear-gradient(135deg,#667eea 0%,#764ba2 100%);--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--text-primary:#1a1a2e;--text-secondary:#6b7280;--border:#e5e7eb}
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--main-bg);color:var(--text-primary);font-size:14px}
+        a{text-decoration:none;color:inherit}
+        .admin-wrapper{display:flex;min-height:100vh}
+        .sidebar{width:var(--sidebar-w);background:var(--sidebar-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform 0.3s}
+        .sidebar-header{padding:24px 20px;border-bottom:1px solid rgba(255,255,255,0.08)}.sidebar-header h2{color:#fff;font-size:16px;font-weight:700}
+        .sidebar-nav{flex:1;padding:12px 0;overflow-y:auto}.sidebar-nav ul{list-style:none}
+        .sidebar-nav li a{display:flex;align-items:center;padding:12px 24px;color:rgba(255,255,255,0.65);font-size:14px;transition:all 0.2s;gap:12px}
+        .sidebar-nav li a:hover{background:var(--sidebar-hover);color:#fff}
+        .sidebar-nav li.active a{background:var(--sidebar-active);color:var(--sidebar-active-color);border-right:3px solid var(--sidebar-active-color)}
+        .sidebar-nav li a .icon{width:20px;height:20px;flex-shrink:0}.sidebar-nav li a .icon svg{width:20px;height:20px}
+        .sidebar-footer{padding:12px 0;border-top:1px solid rgba(255,255,255,0.08)}
+        .sidebar-footer a{display:flex;align-items:center;padding:12px 24px;color:rgba(255,255,255,0.5);font-size:14px;gap:12px;transition:color 0.2s}
+        .sidebar-footer a:hover{color:var(--danger)}.sidebar-footer a .icon{width:20px;height:20px}.sidebar-footer a .icon svg{width:20px;height:20px}
+        .menu-toggle{display:none;position:fixed;top:16px;left:16px;z-index:200;width:40px;height:40px;background:var(--sidebar-bg);border:none;border-radius:8px;color:#fff;cursor:pointer;align-items:center;justify-content:center}
+        .menu-toggle svg{width:24px;height:24px}.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:90}
+        .main-content{flex:1;margin-left:var(--sidebar-w);min-width:0}
+        .topbar{height:64px;background:var(--card-bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:50}
+        .topbar h1{font-size:18px;font-weight:700}.content{padding:24px 32px}
+        .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s}
+        .btn-primary{background:var(--primary-grad);color:#fff}.btn-primary:hover{box-shadow:0 4px 12px rgba(102,126,234,0.4)}
+        .btn-success{background:var(--success);color:#fff}
+        .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-secondary)}.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+        .card{background:var(--card-bg);border-radius:var(--card-radius);box-shadow:var(--card-shadow);margin-bottom:24px;overflow:hidden}
+        .card-header{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+        .card-header h3{font-size:16px;font-weight:600}.card-body{padding:24px}
+        table{width:100%;border-collapse:collapse}
+        th{background:#f8fafc;padding:12px 16px;text-align:left;font-weight:600;font-size:13px;color:var(--text-secondary);border-bottom:1px solid var(--border);white-space:nowrap}
+        td{padding:12px 16px;border-bottom:1px solid rgba(0,0,0,0.04);font-size:13px}
+        tr:nth-child(even){background:#fafbfc}tr:hover{background:rgba(102,126,234,0.03)}
+        .chart-wrapper{height:350px;position:relative}
+        .toolbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+        .toolbar input[type="date"]{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;outline:none}
+        .toolbar input[type="date"]:focus{border-color:var(--primary)}
+        .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+        .badge-rank1{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#fff}
+        .badge-rank2{background:linear-gradient(135deg,#9ca3af,#6b7280);color:#fff}
+        .badge-rank3{background:linear-gradient(135deg,#d97706,#b45309);color:#fff}
+        .empty-msg{padding:40px;text-align:center;color:var(--text-secondary)}
+        .toast{position:fixed;top:24px;right:24px;padding:14px 20px;border-radius:10px;color:#fff;font-size:14px;font-weight:500;z-index:9999;transform:translateX(120%);transition:transform 0.3s;max-width:360px}
+        .toast.show{transform:translateX(0)}.toast-success{background:var(--success)}.toast-error{background:var(--danger)}.toast-info{background:var(--primary)}
+        @media(max-width:768px){
+            .sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.sidebar-overlay.open{display:block}
+            .menu-toggle{display:flex}.main-content{margin-left:0}.content{padding:16px}.topbar{padding:0 16px 0 56px}
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" id="menuToggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div class="admin-wrapper">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header"><h2>流量查询系统</h2></div>
+            <nav class="sidebar-nav"><ul>
+                <li><a href="admin.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span><span>控制台</span></a></li>
+                <li><a href="config.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9"/></svg></span><span>阿里云配置</span></a></li>
+                <li class="active"><a href="traffic.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><span>流量统计</span></a></li>
+                <li><a href="server.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><circle cx="6" cy="6" r="1"/><circle cx="6" cy="18" r="1"/></svg></span><span>服务器管理</span></a></li>
+                <li><a href="system.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span><span>系统设置</span></a></li>
+                <li><a href="mail.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span><span>邮箱配置</span></a></li>
+                <li><a href="logs.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span>操作日志</span></a></li>
+            </ul></nav>
+            <div class="sidebar-footer"><a href="#" id="logoutBtn"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span><span>注销</span></a></div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar"><h1>流量统计</h1></header>
+            <div class="content">
+                <!-- 工具栏 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>数据查询</h3>
+                        <div class="toolbar">
+                            <input type="date" id="datePicker">
+                            <button class="btn btn-outline" onclick="loadStats()">查询</button>
+                            <button class="btn btn-success" onclick="refreshTraffic()" id="refreshBtn">刷新数据</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 趋势图 -->
+                <div class="card">
+                    <div class="card-header"><h3>流量趋势</h3></div>
+                    <div class="card-body">
+                        <div class="chart-wrapper"><canvas id="trendChart"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- 流量排行 -->
+                <div class="card">
+                    <div class="card-header"><h3>流量排行</h3></div>
+                    <div style="overflow-x:auto">
+                        <table>
+                            <thead><tr><th>排名</th><th>配置名称</th><th>实例ID</th><th>出站流量</th><th>总流量</th></tr></thead>
+                            <tbody id="rankingTable"><tr><td colspan="5" class="empty-msg">加载中...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div class="toast" id="toast"></div>
+
+    <script>
+        /**
+         * 流量统计页面
+         * 功能：日期选择查询、流量趋势图（Chart.js折线图）、流量排行、刷新数据
+         */
+        var trendChart=null;
+        (function(){
+            // 检查登录状态
+            fetch('/api/auth/check',{credentials:'same-origin'})
+                .then(function(r){return r.json()})
+                .then(function(d){if(!d.logged_in)window.location.href='login.html'})
+                .catch(function(){window.location.href='login.html'});
+
+            // 设置默认日期为今天
+            var today=new Date();
+            document.getElementById('datePicker').value=today.toISOString().split('T')[0];
+
+            // 加载趋势数据和排行
+            loadTrend();
+            loadRanking();
+            loadStats();
+        })();
+
+        /**
+         * 显示Toast提示
+         */
+        function showToast(msg,type){
+            var t=document.getElementById('toast');t.textContent=msg;
+            t.className='toast toast-'+(type||'info')+' show';
+            setTimeout(function(){t.classList.remove('show')},3000);
+        }
+
+        /**
+         * 格式化字节为可读字符串
+         * @param {number} bytes - 字节数
+         * @returns {string} 格式化后的字符串
+         */
+        function formatBytes(bytes){
+            if(bytes<=0)return'0 B';
+            var gb=bytes/1024/1024/1024;
+            if(gb>=1)return gb.toFixed(2)+' GB';
+            var mb=bytes/1024/1024;
+            return mb.toFixed(2)+' MB';
+        }
+
+        /**
+         * 加载流量趋势图
+         */
+        function loadTrend(){
+            fetch('/api/traffic/trend',{credentials:'same-origin'})
+                .then(function(r){return r.json()})
+                .then(function(d){
+                    var labels=[],data=[];
+                    if(d.trend&&d.trend.length){
+                        d.trend.forEach(function(r){
+                            labels.push(r.record_date.substring(5));
+                            data.push((r.traffic_total/1024/1024/1024).toFixed(2));
+                        });
+                    }
+                    if(trendChart)trendChart.destroy();
+                    trendChart=new Chart(document.getElementById('trendChart'),{
+                        type:'line',
+                        data:{labels:labels,datasets:[{
+                            label:'每日流量(GB)',data:data,
+                            borderColor:'#667eea',backgroundColor:'rgba(102,126,234,0.1)',
+                            fill:true,tension:0.4,pointBackgroundColor:'#667eea',pointRadius:5,pointHoverRadius:7,borderWidth:2
+                        }]},
+                        options:{
+                            responsive:true,maintainAspectRatio:false,
+                            plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(26,26,46,0.9)',padding:12,cornerRadius:8,callbacks:{label:function(c){return c.parsed.y+' GB'}}}},
+                            scales:{
+                                x:{grid:{display:false},ticks:{color:'#6b7280'}},
+                                y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.05)'},ticks:{color:'#6b7280',callback:function(v){return v+' GB'}}}
+                            }
+                        }
+                    });
+                });
+        }
+
+        /**
+         * 加载流量排行
+         */
+        function loadRanking(){
+            fetch('/api/traffic/ranking',{credentials:'same-origin'})
+                .then(function(r){return r.json()})
+                .then(function(d){
+                    var tbody=document.getElementById('rankingTable');
+                    if(!d.ranking||!d.ranking.length){
+                        tbody.innerHTML='<tr><td colspan="5" class="empty-msg">暂无数据</td></tr>';return;
+                    }
+                    var html='';
+                    d.ranking.forEach(function(r,i){
+                        var badge='';
+                        if(i===0)badge='<span class="badge badge-rank1">1</span>';
+                        else if(i===1)badge='<span class="badge badge-rank2">2</span>';
+                        else if(i===2)badge='<span class="badge badge-rank3">3</span>';
+                        else badge=(i+1);
+                        html+='<tr><td>'+badge+'</td><td>'+(r.name||'-')+'</td><td>'+(r.instance_id||'-')+'</td><td>'+formatBytes(r.traffic_out)+'</td><td>'+formatBytes(r.traffic_total)+'</td></tr>';
+                    });
+                    tbody.innerHTML=html;
+                });
+        }
+
+        /**
+         * 按日期加载流量统计
+         */
+        function loadStats(){
+            var date=document.getElementById('datePicker').value;
+            if(!date)return;
+            fetch('/api/traffic/stats?date='+date,{credentials:'same-origin'})
+                .then(function(r){return r.json()})
+                .then(function(d){
+                    if(d.records&&d.records.length){
+                        // 更新趋势图标题，显示查询日期的数据
+                        showToast('已加载 '+date+' 的数据','success');
+                    }
+                });
+        }
+
+        /**
+         * 刷新流量数据（从阿里云API获取最新数据）
+         */
+        function refreshTraffic(){
+            var btn=document.getElementById('refreshBtn');
+            btn.disabled=true;btn.textContent='刷新中...';
+            fetch('/api/traffic/refresh',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin'})
+                .then(function(r){return r.json()})
+                .then(function(d){
+                    if(d.success){showToast(d.message||'刷新成功','success');loadTrend();loadRanking()}
+                    else showToast(d.error||'刷新失败','error')
+                })
+                .catch(function(){showToast('刷新失败','error')})
+                .finally(function(){btn.disabled=false;btn.textContent='刷新数据'});
+        }
+
+        // 注销
+        document.getElementById('logoutBtn').addEventListener('click',function(e){
+            e.preventDefault();
+            fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'}).then(function(){window.location.href='login.html'})
+        });
+        // 手机端侧边栏
+        document.getElementById('menuToggle').addEventListener('click',function(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('open')});
+        document.getElementById('sidebarOverlay').addEventListener('click',function(){document.getElementById('sidebar').classList.remove('open');this.classList.remove('open')});
+    </script>
+</body>
+</html>

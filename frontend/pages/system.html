@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统设置 - 阿里云流量查询系统</title>
+    <style>
+        :root{--sidebar-w:240px;--sidebar-bg:#1a1a2e;--sidebar-hover:#16213e;--sidebar-active:rgba(102,126,234,0.15);--sidebar-active-color:#667eea;--main-bg:#f5f7fa;--card-bg:#fff;--card-radius:12px;--card-shadow:0 2px 12px rgba(0,0,0,0.08);--primary:#667eea;--primary-grad:linear-gradient(135deg,#667eea 0%,#764ba2 100%);--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--text-primary:#1a1a2e;--text-secondary:#6b7280;--border:#e5e7eb}
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:var(--main-bg);color:var(--text-primary);font-size:14px}
+        a{text-decoration:none;color:inherit}
+        .admin-wrapper{display:flex;min-height:100vh}
+        .sidebar{width:var(--sidebar-w);background:var(--sidebar-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform 0.3s}
+        .sidebar-header{padding:24px 20px;border-bottom:1px solid rgba(255,255,255,0.08)}.sidebar-header h2{color:#fff;font-size:16px;font-weight:700}
+        .sidebar-nav{flex:1;padding:12px 0;overflow-y:auto}.sidebar-nav ul{list-style:none}
+        .sidebar-nav li a{display:flex;align-items:center;padding:12px 24px;color:rgba(255,255,255,0.65);font-size:14px;transition:all 0.2s;gap:12px}
+        .sidebar-nav li a:hover{background:var(--sidebar-hover);color:#fff}
+        .sidebar-nav li.active a{background:var(--sidebar-active);color:var(--sidebar-active-color);border-right:3px solid var(--sidebar-active-color)}
+        .sidebar-nav li a .icon{width:20px;height:20px;flex-shrink:0}.sidebar-nav li a .icon svg{width:20px;height:20px}
+        .sidebar-footer{padding:12px 0;border-top:1px solid rgba(255,255,255,0.08)}
+        .sidebar-footer a{display:flex;align-items:center;padding:12px 24px;color:rgba(255,255,255,0.5);font-size:14px;gap:12px;transition:color 0.2s}
+        .sidebar-footer a:hover{color:var(--danger)}.sidebar-footer a .icon{width:20px;height:20px}.sidebar-footer a .icon svg{width:20px;height:20px}
+        .menu-toggle{display:none;position:fixed;top:16px;left:16px;z-index:200;width:40px;height:40px;background:var(--sidebar-bg);border:none;border-radius:8px;color:#fff;cursor:pointer;align-items:center;justify-content:center}
+        .menu-toggle svg{width:24px;height:24px}.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:90}
+        .main-content{flex:1;margin-left:var(--sidebar-w);min-width:0}
+        .topbar{height:64px;background:var(--card-bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:50}
+        .topbar h1{font-size:18px;font-weight:700}.content{padding:24px 32px}
+        .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 24px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s}
+        .btn-primary{background:var(--primary-grad);color:#fff}.btn-primary:hover{box-shadow:0 4px 12px rgba(102,126,234,0.4)}
+        .card{background:var(--card-bg);border-radius:var(--card-radius);box-shadow:var(--card-shadow);margin-bottom:24px;overflow:hidden}
+        .card-header{padding:20px 24px;border-bottom:1px solid var(--border)}
+        .card-header h3{font-size:16px;font-weight:600}
+        .card-body{padding:24px}
+        .form-group{margin-bottom:20px;max-width:500px}
+        .form-group label{display:block;font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px}
+        .form-group input[type="text"],.form-group input[type="number"]{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;outline:none;transition:border-color 0.2s}
+        .form-group input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(102,126,234,0.1)}
+        .form-hint{font-size:12px;color:var(--text-secondary);margin-top:6px}
+        .switch{position:relative;width:44px;height:24px;display:inline-block}
+        .switch input{opacity:0;width:0;height:0}
+        .switch .slider{position:absolute;inset:0;background:#ccc;border-radius:24px;cursor:pointer;transition:0.3s}
+        .switch .slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:0.3s}
+        .switch input:checked+.slider{background:var(--primary)}
+        .switch input:checked+.slider:before{transform:translateX(20px)}
+        .form-actions{margin-top:32px;padding-top:24px;border-top:1px solid var(--border)}
+        .toast{position:fixed;top:24px;right:24px;padding:14px 20px;border-radius:10px;color:#fff;font-size:14px;font-weight:500;z-index:9999;transform:translateX(120%);transition:transform 0.3s;max-width:360px}
+        .toast.show{transform:translateX(0)}.toast-success{background:var(--success)}.toast-error{background:var(--danger)}.toast-info{background:var(--primary)}
+        @media(max-width:768px){
+            .sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.sidebar-overlay.open{display:block}
+            .menu-toggle{display:flex}.main-content{margin-left:0}.content{padding:16px}.topbar{padding:0 16px 0 56px}
+            .form-group{max-width:100%}
+        }
+    </style>
+</head>
+<body>
+    <button class="menu-toggle" id="menuToggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div class="admin-wrapper">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header"><h2>流量查询系统</h2></div>
+            <nav class="sidebar-nav"><ul>
+                <li><a href="admin.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span><span>控制台</span></a></li>
+                <li><a href="config.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9"/></svg></span><span>阿里云配置</span></a></li>
+                <li><a href="traffic.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><span>流量统计</span></a></li>
+                <li><a href="server.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><circle cx="6" cy="6" r="1"/><circle cx="6" cy="18" r="1"/></svg></span><span>服务器管理</span></a></li>
+                <li class="active"><a href="system.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span><span>系统设置</span></a></li>
+                <li><a href="mail.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span><span>邮箱配置</span></a></li>
+                <li><a href="logs.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span>操作日志</span></a></li>
+            </ul></nav>
+            <div class="sidebar-footer"><a href="#" id="logoutBtn"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span><span>注销</span></a></div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar"><h1>系统设置</h1></header>
+            <div class="content">
+                <div class="card">
+                    <div class="card-header"><h3>基本设置</h3></div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="siteName">站点名称</label>
+                            <input type="text" id="siteName" placeholder="如：阿里云流量查询系统">
+                        </div>
+                        <div class="form-group">
+                            <label for="siteDesc">站点描述</label>
+                            <input type="text" id="siteDesc" placeholder="如：云数据传输流量监控平台">
+                        </div>
+                        <div class="form-group">
+                            <label>自动刷新流量数据</label>
+                            <div style="padding-top:4px"><label class="switch"><input type="checkbox" id="autoRefresh"><span class="slider"></span></label></div>
+                            <div class="form-hint">开启后系统将按设定间隔自动从阿里云API获取最新流量数据</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="refreshInterval">刷新间隔（分钟）</label>
+                            <input type="number" id="refreshInterval" value="5" min="1" max="60">
+                            <div class="form-hint">自动刷新的时间间隔，建议5-30分钟</div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" onclick="saveSettings()">保存设置</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div class="toast" id="toast"></div>
+
+    <script>
+        /**
+         * 系统设置页面
+         * 功能：加载/保存站点名称、站点描述、自动刷新开关、刷新间隔
+         */
+        (function(){
+            // 检查登录状态
+            fetch('/api/auth/check',{credentials:'same-origin'})
+                .then(function(r){return r.json()})
+                .then(function(d){if(!d.logged_in)window.location.href='login.html'})
+                .catch(function(){window.location.href='login.html'});
+            // 加载设置
+            loadSettings();
+        })();
+
+        /**
+         * 显示Toast提示
+         */
+        function showToast(msg,type){
+            var t=document.getElementById('toast');t.textContent=msg;
+            t.className='toast toast-'+(type||'info')+' show';
+            setTimeout(function(){t.classList.remove('show')},3000);
+        }
+
+        /**
+         * 加载系统设置
+         */
+        function loadSettings(){
+            fetch('/api/system/settings',{credentials:'same-origin'})
+                .then(function(r){return r.json()})
+                .then(function(d){
+                    document.getElementById('siteName').value=d.site_name||'';
+                    document.getElementById('siteDesc').value=d.site_description||'';
+                    document.getElementById('autoRefresh').checked=d.auto_refresh_enabled==='1';
+                    document.getElementById('refreshInterval').value=parseInt(d.auto_refresh_interval)||5;
+                })
+                .catch(function(){showToast('加载设置失败','error')});
+        }
+
+        /**
+         * 保存系统设置
+         */
+        function saveSettings(){
+            var data={
+                site_name:document.getElementById('siteName').value.trim(),
+                site_description:document.getElementById('siteDesc').value.trim(),
+                auto_refresh_enabled:document.getElementById('autoRefresh').checked?'1':'0',
+                auto_refresh_interval:String(parseInt(document.getElementById('refreshInterval').value)||5)
+            };
+            fetch('/api/system/settings',{
+                method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',
+                body:JSON.stringify(data)
+            })
+            .then(function(r){return r.json()})
+            .then(function(d){
+                if(d.success)showToast(d.message||'保存成功','success');
+                else showToast(d.error||'保存失败','error')
+            })
+            .catch(function(){showToast('保存失败','error')});
+        }
+
+        // 注销
+        document.getElementById('logoutBtn').addEventListener('click',function(e){
+            e.preventDefault();
+            fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'}).then(function(){window.location.href='login.html'})
+        });
+        // 手机端侧边栏
+        document.getElementById('menuToggle').addEventListener('click',function(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('open')});
+        document.getElementById('sidebarOverlay').addEventListener('click',function(){document.getElementById('sidebar').classList.remove('open');this.classList.remove('open')});
+    </script>
+</body>
+</html>

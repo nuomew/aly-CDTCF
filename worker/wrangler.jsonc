@@ -1,0 +1,31 @@
+{
+  "$schema": "https://developers.cloudflare.com/schemas/wrangler.jsonc",
+  "name": "aliyun-traffic",
+  "main": "src/index.js",
+  "compatibility_date": "2026-07-30",
+  "assets": {
+    "directory": "../frontend",
+    "binding": "ASSETS"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "aliyun-traffic",
+      "database_id": "YOUR_D1_DATABASE_ID"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "YOUR_KV_NAMESPACE_ID"
+    }
+  ],
+  "vars": {
+    "APP_SECRET": "your_random_secret_key_here",
+    "APP_URL": "https://your-domain.com",
+    "RESEND_API_KEY": "your_resend_api_key"
+  },
+  "triggers": {
+    "crons": ["*/5 * * * *"]
+  }
+}
