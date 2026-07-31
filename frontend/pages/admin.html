@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>控制台 - 阿里云流量查询系统</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="/js/auth.js"></script>
     <style>
         /* ===== CSS变量 ===== */
         :root{
@@ -260,20 +261,9 @@
          */
         (function(){
             // 检查登录状态
-            checkAuth();
-
-            /**
-             * 检查登录状态，未登录跳转登录页
-             */
-            function checkAuth(){
-                fetch('/api/auth/check',{credentials:'same-origin'})
-                    .then(function(r){return r.json()})
-                    .then(function(d){
-                        if(!d.success||!d.data||!d.data.logged_in){window.location.href='login.html';return}
-                        document.getElementById('adminName').textContent='欢迎，'+(d.data.admin.nickname||d.data.admin.username);
-                    })
-                    .catch(function(){window.location.href='login.html'});
-            }
+            checkLoginStatus(function(admin) {
+                document.getElementById('adminName').textContent='欢迎，'+(admin.nickname||admin.username);
+            });
 
             /**
              * 格式化字节为GB
@@ -285,7 +275,7 @@
             /**
              * 加载仪表盘数据
              */
-            fetch('/api/traffic/dashboard',{credentials:'same-origin'})
+            fetch('/api/traffic/dashboard',{headers:authHeaders()})
                 .then(function(r){return r.json()})
                 .then(function(resp){
                     if(!resp.success){return}
@@ -345,8 +335,7 @@
             // 注销按钮
             document.getElementById('logoutBtn').addEventListener('click',function(e){
                 e.preventDefault();
-                fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'})
-                    .then(function(){window.location.href='login.html'});
+                logout();
             });
 
             // 手机端侧边栏切换

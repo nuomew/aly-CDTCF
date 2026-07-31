@@ -160,13 +160,21 @@ export async function createSession(db, adminId, ip, userAgent) {
  */
 export async function checkAuth(request, env) {
   const token = extractToken(request);
+  console.log('checkAuth: token=' + (token ? token.substring(0, 8) + '...' : 'null'));
+
   if (!token) return null;
 
   const db = env.DB;
+  // 用参数绑定避免SQL注入和时区问题
+  const now = new Date().toISOString().replace('T', ' ').replace(/\.\d+Z$/, '');
+  console.log('checkAuth: now=' + now);
+
   const session = await dbOne(db,
-    'SELECT s.*, a.username, a.nickname, a.email FROM sessions s JOIN admin_users a ON s.admin_id = a.id WHERE s.token = ? AND s.expires_at > datetime(\'now\') AND a.status = 1',
-    [token]
+    'SELECT s.*, a.username, a.nickname, a.email FROM sessions s JOIN admin_users a ON s.admin_id = a.id WHERE s.token = ? AND s.expires_at > ? AND a.status = 1',
+    [token, now]
   );
+
+  console.log('checkAuth: session=' + (session ? 'found' : 'null'));
 
   if (!session) return null;
 

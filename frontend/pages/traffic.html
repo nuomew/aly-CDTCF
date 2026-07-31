@@ -53,6 +53,7 @@
             .menu-toggle{display:flex}.main-content{margin-left:0}.content{padding:16px}.topbar{padding:0 16px 0 56px}
         }
     </style>
+    <script src="/js/auth.js"></script>
 </head>
 <body>
     <button class="menu-toggle" id="menuToggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
@@ -118,10 +119,9 @@
         var trendChart=null;
         (function(){
             // 检查登录状态
-            fetch('/api/auth/check',{credentials:'same-origin'})
-                .then(function(r){return r.json()})
-                .then(function(d){if(!d.success||!d.data||!d.data.logged_in)window.location.href='login.html'})
-                .catch(function(){window.location.href='login.html'});
+            checkLoginStatus(function(admin) {
+                document.getElementById('adminName').textContent='欢迎，'+(admin.nickname||admin.username);
+            });
 
             // 设置默认日期为今天
             var today=new Date();
@@ -159,8 +159,7 @@
          * 加载流量趋势图
          */
         function loadTrend(){
-            fetch('/api/traffic/trend',{credentials:'same-origin'})
-                .then(function(r){return r.json()})
+            authFetch('/api/traffic/trend')
                 .then(function(resp){
                     if(!resp.success)return;
                     var d=resp.data||{};
@@ -195,8 +194,7 @@
          * 加载流量排行
          */
         function loadRanking(){
-            fetch('/api/traffic/ranking',{credentials:'same-origin'})
-                .then(function(r){return r.json()})
+            authFetch('/api/traffic/ranking')
                 .then(function(resp){
                     if(!resp.success)return;
                     var d=resp.data||{};
@@ -223,8 +221,7 @@
         function loadStats(){
             var date=document.getElementById('datePicker').value;
             if(!date)return;
-            fetch('/api/traffic/stats?date='+date,{credentials:'same-origin'})
-                .then(function(r){return r.json()})
+            authFetch('/api/traffic/stats?date='+date)
                 .then(function(resp){
                     if(!resp.success)return;
                     var d=resp.data||{};
@@ -241,8 +238,7 @@
         function refreshTraffic(){
             var btn=document.getElementById('refreshBtn');
             btn.disabled=true;btn.textContent='刷新中...';
-            fetch('/api/traffic/refresh',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin'})
-                .then(function(r){return r.json()})
+            authFetchJSON('/api/traffic/refresh', 'POST')
                 .then(function(d){
                     if(d.success){showToast(d.message||'刷新成功','success');loadTrend();loadRanking()}
                     else showToast(d.message||'刷新失败','error')
@@ -254,7 +250,7 @@
         // 注销
         document.getElementById('logoutBtn').addEventListener('click',function(e){
             e.preventDefault();
-            fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'}).then(function(){window.location.href='login.html'})
+            logout();
         });
         // 手机端侧边栏
         document.getElementById('menuToggle').addEventListener('click',function(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('open')});

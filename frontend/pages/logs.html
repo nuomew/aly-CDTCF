@@ -57,6 +57,7 @@
             .pagination{flex-direction:column;gap:12px}
         }
     </style>
+    <script src="/js/auth.js"></script>
 </head>
 <body>
     <button class="menu-toggle" id="menuToggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
@@ -106,10 +107,9 @@
 
         (function(){
             // 检查登录状态
-            fetch('/api/auth/check',{credentials:'same-origin'})
-                .then(function(r){return r.json()})
-                .then(function(d){if(!d.success||!d.data||!d.data.logged_in)window.location.href='login.html'})
-                .catch(function(){window.location.href='login.html'});
+            checkLoginStatus(function(admin) {
+                document.getElementById('adminName').textContent='欢迎，'+(admin.nickname||admin.username);
+            });
             // 加载日志
             loadLogs(1);
         })();
@@ -121,8 +121,7 @@
         function loadLogs(page){
             currentPage=page;
             document.getElementById('logTable').innerHTML='<tr><td colspan="5" class="empty-msg">加载中...</td></tr>';
-            fetch('/api/system/logs?page='+page+'&limit='+pageSize,{credentials:'same-origin'})
-                .then(function(r){return r.json()})
+            authFetch('/api/system/logs?page='+page+'&limit='+pageSize)
                 .then(function(resp){
                     if(!resp.success){
                         document.getElementById('logTable').innerHTML='<tr><td colspan="5" class="empty-msg" style="color:var(--danger)">'+esc(resp.message||'加载失败')+'</td></tr>';
@@ -189,7 +188,7 @@
         // 注销
         document.getElementById('logoutBtn').addEventListener('click',function(e){
             e.preventDefault();
-            fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'}).then(function(){window.location.href='login.html'})
+            logout();
         });
         document.getElementById('menuToggle').addEventListener('click',function(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('open')});
         document.getElementById('sidebarOverlay').addEventListener('click',function(){document.getElementById('sidebar').classList.remove('open');this.classList.remove('open')});

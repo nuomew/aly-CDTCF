@@ -94,6 +94,7 @@
             .modal{margin:16px;width:calc(100vw - 32px)}
         }
     </style>
+    <script src="/js/auth.js"></script>
 </head>
 <body>
     <button class="menu-toggle" id="menuToggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
@@ -207,17 +208,9 @@
          */
         (function(){
             // 检查登录状态
-            checkAuth();
-
-            /**
-             * 检查登录状态
-             */
-            function checkAuth(){
-                fetch('/api/auth/check',{credentials:'same-origin'})
-                    .then(function(r){return r.json()})
-                    .then(function(d){if(!d.success||!d.data||!d.data.logged_in)window.location.href='login.html'})
-                    .catch(function(){window.location.href='login.html'});
-            }
+            checkLoginStatus(function(admin) {
+                document.getElementById('adminName').textContent='欢迎，'+(admin.nickname||admin.username);
+            });
 
             // 加载配置列表
             loadConfigs();
@@ -239,8 +232,7 @@
          * 加载配置列表
          */
         function loadConfigs(){
-            fetch('/api/config/list',{credentials:'same-origin'})
-                .then(function(r){return r.json()})
+            authFetch('/api/config/list')
                 .then(function(resp){
                     if(!resp.success){showToast(resp.message||'加载失败','error');return}
                     var list=resp.data||[];
@@ -313,8 +305,7 @@
          * @param {number} id - 配置ID
          */
         function editConfig(id){
-            fetch('/api/config/get?id='+id,{credentials:'same-origin'})
-                .then(function(r){return r.json()})
+            authFetch('/api/config/get?id='+id)
                 .then(function(res){
                     if(!res.success){showToast(res.message||'加载配置失败','error');return}
                     var c=res.data||{};
@@ -364,8 +355,7 @@
             if(id)body.id=parseInt(id);
 
             var url=id?'/api/config/update':'/api/config/add';
-            fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(body)})
-                .then(function(r){return r.json()})
+            authFetchJSON(url, 'POST', body)
                 .then(function(d){
                     if(d.success){showToast(d.message||'保存成功','success');closeModal();loadConfigs()}
                     else showToast(d.message||'保存失败','error')
@@ -379,8 +369,7 @@
          */
         function testConfig(id){
             showToast('正在测试连接...','info');
-            fetch('/api/config/test',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({id:id})})
-                .then(function(r){return r.json()})
+            authFetchJSON('/api/config/test', 'POST', {id:id})
                 .then(function(d){
                     if(d.success)showToast(d.message||'连接成功','success');
                     else showToast(d.message||'连接失败','error')
@@ -393,14 +382,12 @@
          * @param {number} id - 配置ID
          */
         function setDefault(id){
-            fetch('/api/config/get?id='+id,{credentials:'same-origin'})
-                .then(function(r){return r.json()})
+            authFetch('/api/config/get?id='+id)
                 .then(function(res){
                     if(!res.success){showToast(res.message||'加载配置失败','error');return}
                     var c=res.data||{};
                     c.is_default=true;
-                    fetch('/api/config/update',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(c)})
-                        .then(function(r){return r.json()})
+                    authFetchJSON('/api/config/update', 'POST', c)
                         .then(function(d){
                             if(d.success){showToast('已设为默认','success');loadConfigs()}
                             else showToast(d.message||'操作失败','error')
@@ -417,8 +404,7 @@
             document.getElementById('deleteName').textContent=name;
             document.getElementById('deleteModal').classList.add('show');
             document.getElementById('confirmDeleteBtn').onclick=function(){
-                fetch('/api/config/delete',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({id:id})})
-                    .then(function(r){return r.json()})
+                authFetchJSON('/api/config/delete', 'POST', {id:id})
                     .then(function(d){
                         if(d.success){showToast('删除成功','success');closeDeleteModal();loadConfigs()}
                         else showToast(d.message||'删除失败','error')
@@ -433,7 +419,7 @@
         // 注销
         document.getElementById('logoutBtn').addEventListener('click',function(e){
             e.preventDefault();
-            fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'}).then(function(){window.location.href='login.html'})
+            logout();
         });
         // 手机端侧边栏
         document.getElementById('menuToggle').addEventListener('click',function(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('open')});

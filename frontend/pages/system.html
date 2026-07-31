@@ -51,6 +51,7 @@
             .form-group{max-width:100%}
         }
     </style>
+    <script src="/js/auth.js"></script>
 </head>
 <body>
     <button class="menu-toggle" id="menuToggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
@@ -111,10 +112,9 @@
          */
         (function(){
             // 检查登录状态
-            fetch('/api/auth/check',{credentials:'same-origin'})
-                .then(function(r){return r.json()})
-                .then(function(d){if(!d.success||!d.data||!d.data.logged_in)window.location.href='login.html'})
-                .catch(function(){window.location.href='login.html'});
+            checkLoginStatus(function(admin) {
+                document.getElementById('adminName').textContent='欢迎，'+(admin.nickname||admin.username);
+            });
             // 加载设置
             loadSettings();
         })();
@@ -132,8 +132,7 @@
          * 加载系统设置
          */
         function loadSettings(){
-            fetch('/api/system/settings',{credentials:'same-origin'})
-                .then(function(r){return r.json()})
+            authFetch('/api/system/settings')
                 .then(function(resp){
                     if(!resp.success){showToast(resp.message||'加载设置失败','error');return}
                     var d=resp.data||{};
@@ -155,11 +154,7 @@
                 auto_refresh_enabled:document.getElementById('autoRefresh').checked?'1':'0',
                 auto_refresh_interval:String(parseInt(document.getElementById('refreshInterval').value)||5)
             };
-            fetch('/api/system/settings',{
-                method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',
-                body:JSON.stringify(data)
-            })
-            .then(function(r){return r.json()})
+            authFetchJSON('/api/system/settings', 'POST', data)
             .then(function(d){
                 if(d.success)showToast(d.message||'保存成功','success');
                 else showToast(d.message||'保存失败','error')
@@ -170,7 +165,7 @@
         // 注销
         document.getElementById('logoutBtn').addEventListener('click',function(e){
             e.preventDefault();
-            fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'}).then(function(){window.location.href='login.html'})
+            logout();
         });
         // 手机端侧边栏
         document.getElementById('menuToggle').addEventListener('click',function(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('open')});

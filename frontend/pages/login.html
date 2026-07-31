@@ -401,6 +401,7 @@
         </div>
     </div>
 
+    <script src="/js/auth.js"></script>
     <script>
         /**
          * 登录页面逻辑
@@ -420,14 +421,11 @@
              * 如果已登录则跳转到后台首页
              */
             function checkLogin() {
-                fetch('/api/auth/check', { credentials: 'same-origin' })
-                    .then(function(r) { return r.json(); })
-                    .then(function(d) {
-                        if (d.success && d.data && d.data.logged_in) {
-                            window.location.href = '/pages/admin.html';
-                        }
-                    })
-                    .catch(function() {});
+                authFetch('/api/auth/check').then(function(d) {
+                    if (d.success && d.data && d.data.logged_in) {
+                        window.location.href = '/pages/admin.html';
+                    }
+                }).catch(function() {});
             }
 
             /**
@@ -474,15 +472,13 @@
                 setLoading(true);
 
                 // 调用登录API
-                fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'same-origin',
-                    body: JSON.stringify({ username: username, password: password })
-                })
-                .then(function(r) { return r.json(); })
+                authFetchJSON('/api/auth/login', 'POST', { username: username, password: password })
                 .then(function(data) {
                     if (data.success) {
+                        // 保存 token 到 localStorage
+                        if (data.data && data.data.token) {
+                            setAuthToken(data.data.token);
+                        }
                         // 登录成功，跳转到后台首页
                         window.location.href = '/pages/admin.html';
                     } else {

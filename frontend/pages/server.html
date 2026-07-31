@@ -71,6 +71,7 @@
             .modal{margin:16px}
         }
     </style>
+    <script src="/js/auth.js"></script>
 </head>
 <body>
     <button class="menu-toggle" id="menuToggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
@@ -128,10 +129,9 @@
 
         (function(){
             // 检查登录状态
-            fetch('/api/auth/check',{credentials:'same-origin'})
-                .then(function(r){return r.json()})
-                .then(function(d){if(!d.success||!d.data||!d.data.logged_in)window.location.href='login.html'})
-                .catch(function(){window.location.href='login.html'});
+            checkLoginStatus(function(admin) {
+                document.getElementById('adminName').textContent='欢迎，'+(admin.nickname||admin.username);
+            });
             // 加载实例列表
             loadInstances();
         })();
@@ -173,8 +173,7 @@
          */
         function loadInstances(){
             document.getElementById('instanceTable').innerHTML='<tr><td colspan="8" class="empty-msg">正在加载...</td></tr>';
-            fetch('/api/ecs/instances',{credentials:'same-origin'})
-                .then(function(r){return r.json()})
+            authFetch('/api/ecs/instances')
                 .then(function(resp){
                     if(!resp.success){document.getElementById('instanceTable').innerHTML='<tr><td colspan="8" class="empty-msg" style="color:var(--danger)">'+esc(resp.message||'加载失败')+'</td></tr>';return}
                     var list=resp.data||[];
@@ -220,11 +219,7 @@
             if(!confirm('确定要'+actionNames[action]+'实例 '+inst.instanceId+' 吗？'))return;
 
             showToast('正在发送'+actionNames[action]+'指令...','info');
-            fetch('/api/ecs/instance/action',{
-                method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',
-                body:JSON.stringify({config_id:inst.configId,instance_id:inst.instanceId,action:action})
-            })
-            .then(function(r){return r.json()})
+            authFetchJSON('/api/ecs/instance/action', 'POST', {config_id:inst.configId,instance_id:inst.instanceId,action:action})
             .then(function(d){
                 if(d.success){showToast(d.message||'操作成功','success');setTimeout(loadInstances,3000)}
                 else showToast(d.message||'操作失败','error')
@@ -255,8 +250,7 @@
             body.innerHTML='加载中...';
             document.getElementById('detailModal').classList.add('show');
 
-            fetch('/api/ecs/instance/detail?config_id='+inst.configId+'&instance_id='+inst.instanceId,{credentials:'same-origin'})
-                .then(function(r){return r.json()})
+            authFetch('/api/ecs/instance/detail?config_id='+inst.configId+'&instance_id='+inst.instanceId)
                 .then(function(resp){
                     if(!resp.success){body.innerHTML='<p style="color:var(--danger)">'+esc(resp.message||'加载失败')+'</p>';return}
                     var d=resp.data||{};
@@ -288,7 +282,7 @@
         // 注销
         document.getElementById('logoutBtn').addEventListener('click',function(e){
             e.preventDefault();
-            fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'}).then(function(){window.location.href='login.html'})
+            logout();
         });
         // 手机端侧边栏
         document.getElementById('menuToggle').addEventListener('click',function(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('open')});

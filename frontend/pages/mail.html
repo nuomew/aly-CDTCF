@@ -73,6 +73,7 @@
             .modal{margin:16px}
         }
     </style>
+    <script src="/js/auth.js"></script>
 </head>
 <body>
     <button class="menu-toggle" id="menuToggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
@@ -167,10 +168,9 @@
          * 功能：邮箱配置CRUD、邮件模板编辑、测试发送
          */
         (function(){
-            fetch('/api/auth/check',{credentials:'same-origin'})
-                .then(function(r){return r.json()})
-                .then(function(d){if(!d.success||!d.data||!d.data.logged_in)window.location.href='login.html'})
-                .catch(function(){window.location.href='login.html'});
+            checkLoginStatus(function(admin) {
+                document.getElementById('adminName').textContent='欢迎，'+(admin.nickname||admin.username);
+            });
             loadMailConfigs();
             loadTemplates();
         })();
@@ -188,8 +188,7 @@
          * 加载邮箱配置列表
          */
         function loadMailConfigs(){
-            fetch('/api/system/mail/list',{credentials:'same-origin'})
-                .then(function(r){return r.json()})
+            authFetch('/api/system/mail/list')
                 .then(function(resp){
                     if(!resp.success)return;
                     var list=resp.data||[];
@@ -233,8 +232,7 @@
          * @param {number} id - 配置ID
          */
         function editMail(id){
-            fetch('/api/system/mail/list',{credentials:'same-origin'})
-                .then(function(r){return r.json()})
+            authFetch('/api/system/mail/list')
                 .then(function(resp){
                     if(!resp.success)return;
                     var list=resp.data||[];
@@ -275,8 +273,7 @@
             var key=document.getElementById('mailApiKey').value;
             if(key)body.resend_api_key=key;
 
-            fetch('/api/system/mail/save',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(body)})
-                .then(function(r){return r.json()})
+            authFetchJSON('/api/system/mail/save', 'POST', body)
                 .then(function(d){
                     if(d.success){showToast(d.message||'保存成功','success');closeMailModal();loadMailConfigs()}
                     else showToast(d.message||'保存失败','error')
@@ -290,8 +287,7 @@
          */
         function testMail(id){
             showToast('正在发送测试邮件...','info');
-            fetch('/api/system/mail/test',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({id:id})})
-                .then(function(r){return r.json()})
+            authFetchJSON('/api/system/mail/test', 'POST', {id:id})
                 .then(function(d){
                     if(d.success)showToast(d.message||'发送成功','success');
                     else showToast(d.message||'发送失败','error')
@@ -305,8 +301,7 @@
          */
         function deleteMail(id){
             if(!confirm('确定要删除此邮箱配置吗？'))return;
-            fetch('/api/system/mail/delete',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({id:id})})
-                .then(function(r){return r.json()})
+            authFetchJSON('/api/system/mail/delete', 'POST', {id:id})
                 .then(function(d){
                     if(d.success){showToast('删除成功','success');loadMailConfigs()}
                     else showToast(d.message||'删除失败','error')
@@ -319,8 +314,7 @@
          * 加载邮件模板列表
          */
         function loadTemplates(){
-            fetch('/api/system/mail-template/list',{credentials:'same-origin'})
-                .then(function(r){return r.json()})
+            authFetch('/api/system/mail-template/list')
                 .then(function(resp){
                     if(!resp.success)return;
                     var list=resp.data||[];
@@ -344,8 +338,7 @@
          * @param {number} id - 模板ID
          */
         function editTemplate(id){
-            fetch('/api/system/mail-template/list',{credentials:'same-origin'})
-                .then(function(r){return r.json()})
+            authFetch('/api/system/mail-template/list')
                 .then(function(resp){
                     if(!resp.success)return;
                     var list=resp.data||[];
@@ -371,8 +364,7 @@
                 body:document.getElementById('tplBody').value,
                 status:document.getElementById('tplStatus').checked?1:0
             };
-            fetch('/api/system/mail-template/save',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(body)})
-                .then(function(r){return r.json()})
+            authFetchJSON('/api/system/mail-template/save', 'POST', body)
                 .then(function(d){
                     if(d.success){showToast(d.message||'保存成功','success');closeTemplateModal();loadTemplates()}
                     else showToast(d.message||'保存失败','error')
@@ -383,7 +375,7 @@
         // 注销
         document.getElementById('logoutBtn').addEventListener('click',function(e){
             e.preventDefault();
-            fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'}).then(function(){window.location.href='login.html'})
+            logout();
         });
         document.getElementById('menuToggle').addEventListener('click',function(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('open')});
         document.getElementById('sidebarOverlay').addEventListener('click',function(){document.getElementById('sidebar').classList.remove('open');this.classList.remove('open')});
