@@ -67,7 +67,12 @@ async function getInstances(request, env) {
     configs = await dbAll(db, 'SELECT * FROM aliyun_config WHERE status = 1');
   }
 
+  if (!configs.length) {
+    return jsonResponse({ instances: [], errors: [], message: '暂无启用的阿里云配置' });
+  }
+
   const allInstances = [];
+  const errors = [];
 
   for (const config of configs) {
     try {
@@ -75,7 +80,12 @@ async function getInstances(request, env) {
       const client = createEcsClient(config.access_key_id, keySecret, config.region_id);
       const result = await client.describeInstances();
 
-      if (result.success && result.data?.Instances?.Instance) {
+      if (!result.success) {
+        errors.push({ configName: config.name, error: result.error || '未知错误' });
+        continue;
+      }
+
+      if (result.data?.Instances?.Instance) {
         const instances = result.data.Instances.Instance;
         for (const inst of instances) {
           allInstances.push({
@@ -101,10 +111,11 @@ async function getInstances(request, env) {
       }
     } catch (err) {
       console.error(`获取实例列表失败 [${config.name}]:`, err);
+      errors.push({ configName: config.name, error: err.message || String(err) });
     }
   }
 
-  return jsonResponse(allInstances);
+  return jsonResponse({ instances: allInstances, errors });
 }
 
 /**
