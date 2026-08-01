@@ -6,7 +6,7 @@
 import { dbAll, dbOne } from '../lib/db.js';
 import { createEcsClient, formatEcsStatus, formatChargeType } from '../lib/aliyun-api.js';
 import { decryptData, encryptData } from '../lib/auth.js';
-import { jsonResponse, errorResponse, logOperation, formatInstanceType } from '../lib/helpers.js';
+import { jsonResponse, errorResponse, logOperation, formatInstanceType, formatCharge } from '../lib/helpers.js';
 
 /**
  * 处理 ECS 相关路由
@@ -156,22 +156,19 @@ async function getInstanceDetail(request, env) {
   if (!result.success) return errorResponse('获取实例详情失败: ' + result.error);
 
   const data = result.data;
-  console.log('describeInstanceAttribute原始数据:', JSON.stringify({
-    osName: data.OSName,
-    osNameEn: data.OSNameEn,
-    publicIp: data.PublicIpAddress,
-    innerIp: data.InnerIpAddress,
-    vpcPrivateIp: data.VpcAttributes?.PrivateIpAddress,
-    internetChargeType: data.InternetChargeType,
-    instanceChargeType: data.InstanceChargeType,
-    networkType: data.NetworkType,
-    bandwidthOut: data.InternetMaxBandwidthOut,
-    keys: Object.keys(data)
-  }));
   // 内网IP：优先从VPC属性获取，其次从经典网络属性获取
   const privateIpList = data.VpcAttributes?.PrivateIpAddress?.IpAddress
     || data.InnerIpAddress?.IpAddress
     || [];
+  // 公网IP：优先EIP，其次公网IP
+  const publicIpList = [];
+  if (data.EipAddress?.IpAddress) publicIpList.push(data.EipAddress.IpAddress);
+  if (data.PublicIpAddress?.IpAddress?.length) publicIpList.push(...data.PublicIpAddress.IpAddress);
+  // 带宽：优先EIP带宽，其次实例带宽
+  const bandwidth = (data.EipAddress?.Bandwidth > 0 ? data.EipAddress.Bandwidth : 0) || data.InternetMaxBandwidthOut || 0;
+  // 带宽计费方式
+  let internetChargeType = data.InternetChargeType || '';
+  if (!internetChargeType && data.EipAddress?.InternetChargeType) internetChargeType = data.EipAddress.InternetChargeType;
 
   return jsonResponse({
     instanceId: data.InstanceId,
@@ -180,16 +177,17 @@ async function getInstanceDetail(request, env) {
     status: data.Status,
     statusText: formatEcsStatus(data.Status),
     instanceType: data.InstanceType || '',
-    osName: data.OSName || '',
+    osName: data.OSName || data.OSNameEn || '',
     regionId: data.RegionId,
-    publicIp: data.PublicIpAddress?.IpAddress || [],
+    publicIp: publicIpList,
     innerIp: privateIpList,
     vpcId: data.VpcAttributes?.VpcId || '',
     vswitchId: data.VpcAttributes?.VSwitchId || '',
     securityGroupIds: data.SecurityGroupIds?.SecurityGroupId || [],
-    internetChargeType: data.InternetChargeType || '',
+    internetChargeType: internetChargeType,
+    internetChargeTypeText: formatCharge(internetChargeType),
     internetMaxBandwidthIn: data.InternetMaxBandwidthIn || 0,
-    internetMaxBandwidthOut: data.InternetMaxBandwidthOut || 0,
+    internetMaxBandwidthOut: bandwidth,
     creationTime: data.CreationTime || '',
     expiredTime: data.ExpiredTime || '',
     imageId: data.ImageId || '',
@@ -197,7 +195,7 @@ async function getInstanceDetail(request, env) {
     memory: data.Memory || 0,
     instanceChargeType: data.InstanceChargeType || '',
     instanceChargeTypeText: formatChargeType(data.InstanceChargeType || ''),
-    networkType: data.NetworkType || ''
+    networkType: data.InstanceNetworkType || ''
   });
 }
 

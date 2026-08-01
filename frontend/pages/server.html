@@ -769,6 +769,8 @@
                 +detailRow('内网IP',esc(innerIp))
                 +detailRow('VPC ID',esc(d.vpcId||'-'))
                 +detailRow('交换机ID',esc(d.vswitchId||'-'))
+                +detailRow('安全组',esc((d.securityGroupIds&&d.securityGroupIds.length)?d.securityGroupIds.join(', '):'-'))
+                +detailRow('带宽计费',esc(d.internetChargeTypeText||formatCharge(d.internetChargeType)||'-'))
                 +detailRow('地域',esc(regionName(d.regionId)))
                 +detailRow('网络类型',esc(d.networkType||'-'))
                 +detailRow('带宽',(d.internetMaxBandwidthOut||0)+' Mbps')

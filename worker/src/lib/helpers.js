@@ -134,3 +134,16 @@ export function formatInstanceType(instanceType) {
   }
   return '通用型';
 }
+
+/**
+ * 格式化计费类型
+ * @param {string} type - 计费类型
+ * @returns {string} 中文描述
+ */
+export function formatCharge(type) {
+  const map = {
+    PrePaid: '包年包月', PostPaid: '按量付费',
+    PayByBandwidth: '按固定带宽', PayByTraffic: '按使用流量'
+  };
+  return map[type] || type || '-';
+}
