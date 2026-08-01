@@ -156,10 +156,18 @@ async function getInstanceDetail(request, env) {
   if (!result.success) return errorResponse('获取实例详情失败: ' + result.error);
 
   const data = result.data;
-  // 调试日志
-  console.log('getInstanceDetail raw data keys:', Object.keys(data).join(', '));
-  console.log('OSName:', data.OSName, 'Status:', data.Status, 'InstanceType:', data.InstanceType);
-
+  console.log('describeInstanceAttribute原始数据:', JSON.stringify({
+    osName: data.OSName,
+    osNameEn: data.OSNameEn,
+    publicIp: data.PublicIpAddress,
+    innerIp: data.InnerIpAddress,
+    vpcPrivateIp: data.VpcAttributes?.PrivateIpAddress,
+    internetChargeType: data.InternetChargeType,
+    instanceChargeType: data.InstanceChargeType,
+    networkType: data.NetworkType,
+    bandwidthOut: data.InternetMaxBandwidthOut,
+    keys: Object.keys(data)
+  }));
   // 内网IP：优先从VPC属性获取，其次从经典网络属性获取
   const privateIpList = data.VpcAttributes?.PrivateIpAddress?.IpAddress
     || data.InnerIpAddress?.IpAddress
@@ -189,9 +197,7 @@ async function getInstanceDetail(request, env) {
     memory: data.Memory || 0,
     instanceChargeType: data.InstanceChargeType || '',
     instanceChargeTypeText: formatChargeType(data.InstanceChargeType || ''),
-    networkType: data.NetworkType || '',
-    // 调试：返回原始数据的所有键名，方便排查字段名问题
-    _debugKeys: Object.keys(data)
+    networkType: data.NetworkType || ''
   });
 }
 
