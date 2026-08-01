@@ -96,6 +96,26 @@ async function getDashboardData(env) {
     monthTrafficOut = stats?.traffic_out || 0;
   }
 
+  // 上月流量（取上月最新日期记录汇总，用于环比计算）
+  const todayBj = todayBeijing();
+  const curYear = parseInt(todayBj.substring(0, 4), 10);
+  const curMonth = parseInt(todayBj.substring(5, 7), 10);
+  const lastMonthYear = curMonth === 1 ? curYear - 1 : curYear;
+  const lastMonthNum = curMonth === 1 ? 12 : curMonth - 1;
+  const lastMonthStart = `${lastMonthYear}-${String(lastMonthNum).padStart(2, '0')}-01`;
+  // 本月的第 0 天即上月最后一天
+  const lastMonthEnd = new Date(Date.UTC(curYear, curMonth - 1, 0)).toISOString().split('T')[0];
+  let lastMonthTrafficTotal = 0;
+  const lastMonthLatest = await dbOne(db, `SELECT MAX(record_date) as max_date FROM traffic_records WHERE record_date BETWEEN ? AND ?`, [lastMonthStart, lastMonthEnd]);
+  if (lastMonthLatest?.max_date) {
+    const lastStats = await dbOne(db, `SELECT SUM(traffic_total) as traffic_total FROM traffic_records WHERE record_date = ?`, [lastMonthLatest.max_date]);
+    lastMonthTrafficTotal = lastStats?.traffic_total || 0;
+  }
+
+  // 本月有流量记录的天数（用于预测月底流量：日均 = 本月流量 / 记录天数）
+  const recordDaysRow = await dbOne(db, `SELECT COUNT(DISTINCT record_date) as days FROM traffic_records WHERE record_date >= ?`, [monthStart]);
+  const recordDays = recordDaysRow?.days || 0;
+
   // 7天趋势
   const trendData = await getTrendData(db, monthStart);
 
@@ -130,6 +150,7 @@ async function getDashboardData(env) {
     })),
     todayTraffic, yesterdayTraffic,
     monthTrafficTotal, monthTrafficOut,
+    lastMonthTrafficTotal, recordDays,
     totalMaxTraffic, totalCurrentTraffic, totalTrafficPercent,
     weeklyStats: trendData,
     ranking

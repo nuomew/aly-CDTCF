@@ -68,7 +68,6 @@ async function getInstances(request, env) {
   }
 
   const allInstances = [];
-  const errors = [];
 
   for (const config of configs) {
     try {
@@ -76,12 +75,9 @@ async function getInstances(request, env) {
       const client = createEcsClient(config.access_key_id, keySecret, config.region_id);
       const result = await client.describeInstances();
 
-      if (!result.success) {
-        errors.push(`[${config.name}] ${result.error || 'API请求失败'}`);
-      } else if (result.data?.Instances?.Instance) {
+      if (result.success && result.data?.Instances?.Instance) {
         const instances = result.data.Instances.Instance;
-        const instArr = Array.isArray(instances) ? instances : [instances];
-        for (const inst of instArr) {
+        for (const inst of instances) {
           allInstances.push({
             configId: config.id,
             configName: config.name,
@@ -105,11 +101,10 @@ async function getInstances(request, env) {
       }
     } catch (err) {
       console.error(`获取实例列表失败 [${config.name}]:`, err);
-      errors.push(`[${config.name}] ${err.message || '未知错误'}`);
     }
   }
 
-  return jsonResponse({ instances: allInstances, errors });
+  return jsonResponse(allInstances);
 }
 
 /**

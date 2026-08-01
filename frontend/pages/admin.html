@@ -9,15 +9,15 @@
     <style>
         /* ===== CSS变量 ===== */
         :root{
-            --sidebar-w:240px;
-            --sidebar-bg:#1a1a2e;
-            --sidebar-hover:#16213e;
-            --sidebar-active:rgba(102,126,234,0.15);
-            --sidebar-active-color:#667eea;
-            --main-bg:#f5f7fa;
-            --card-bg:#fff;
-            --card-radius:12px;
-            --card-shadow:0 2px 12px rgba(0,0,0,0.08);
+            --sidebar-w:260px;
+            --sidebar-bg:linear-gradient(180deg,#1a1a2e 0%,#16213e 100%);
+            --card-shadow-hover:0 20px 60px rgba(102,126,234,0.15);
+            --transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+            /* 旧激活色变量保留兼容 */
+            --main-bg:linear-gradient(135deg,#f5f7fa 0%,#e4e8ec 100%);
+            --card-bg:rgba(255,255,255,0.95);
+            --card-radius:16px;
+            --card-shadow:0 8px 32px rgba(0,0,0,0.1);
             --primary:#667eea;
             --primary-grad:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
             --success:#10b981;
@@ -30,75 +30,113 @@
         /* ===== 全局重置 ===== */
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
-            background:var(--main-bg);color:var(--text-primary);font-size:14px}
+            background:var(--main-bg);color:var(--text-primary);font-size:14px;min-height:100vh}
         a{text-decoration:none;color:inherit}
+        /* ===== 自定义渐变滚动条 ===== */
+        ::-webkit-scrollbar{width:8px;height:8px}
+        ::-webkit-scrollbar-track{background:#f1f1f1;border-radius:4px}
+        ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#667eea,#764ba2);border-radius:4px}
+        ::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#5a6fd6,#6a3d8f)}
+        /* ===== 选中文本样式 ===== */
+        ::selection{background:rgba(102,126,234,0.3);color:#1a1a2e}
         /* ===== 布局 ===== */
         .admin-wrapper{display:flex;min-height:100vh}
         /* ===== 侧边栏 ===== */
         .sidebar{width:var(--sidebar-w);background:var(--sidebar-bg);display:flex;flex-direction:column;
-            position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform 0.3s}
-        .sidebar-header{padding:24px 20px;border-bottom:1px solid rgba(255,255,255,0.08)}
-        .sidebar-header h2{color:#fff;font-size:16px;font-weight:700}
-        .sidebar-nav{flex:1;padding:12px 0;overflow-y:auto}
+            position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform 0.3s;color:#fff;
+            box-shadow:4px 0 20px rgba(0,0,0,0.3)}
+        .sidebar-header{padding:24px 20px;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02)}
+        .sidebar-header h2{font-size:18px;font-weight:700;letter-spacing:0.5px;
+            background:linear-gradient(90deg,#fff 0%,#a5b4fc 100%);
+            -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .sidebar-nav{flex:1;padding:20px 12px;overflow-y:auto}
         .sidebar-nav ul{list-style:none}
-        .sidebar-nav li a{display:flex;align-items:center;padding:12px 24px;color:rgba(255,255,255,0.65);
-            font-size:14px;transition:all 0.2s;gap:12px}
-        .sidebar-nav li a:hover{background:var(--sidebar-hover);color:#fff}
-        .sidebar-nav li.active a{background:var(--sidebar-active);color:var(--sidebar-active-color);
-            border-right:3px solid var(--sidebar-active-color)}
+        .sidebar-nav li a{display:flex;align-items:center;padding:14px 18px;color:rgba(255,255,255,0.65);
+            font-size:14px;transition:var(--transition);gap:14px;border-radius:12px;margin-bottom:4px;
+            position:relative;overflow:hidden}
+        /* hover 从左到右紫色渐变扫光 */
+        .sidebar-nav li a::before{content:'';position:absolute;left:0;top:0;width:100%;height:100%;
+            background:linear-gradient(90deg,rgba(102,126,234,0.2) 0%,transparent 100%);
+            opacity:0;transition:var(--transition)}
+        .sidebar-nav li a:hover{background:rgba(255,255,255,0.08);color:#fff}
+        .sidebar-nav li a:hover::before{opacity:1}
+        .sidebar-nav li a span{position:relative;z-index:1}
+        /* 激活态：紫渐变背景 + 左侧渐变竖条 + 投影 */
+        .sidebar-nav li.active a{background:linear-gradient(90deg,rgba(102,126,234,0.25) 0%,rgba(118,75,162,0.15) 100%);
+            color:#fff;box-shadow:0 4px 15px rgba(102,126,234,0.2)}
+        .sidebar-nav li.active a::after{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);
+            width:4px;height:24px;background:var(--primary-grad);border-radius:0 4px 4px 0}
         .sidebar-nav li a .icon{width:20px;height:20px;flex-shrink:0}
         .sidebar-nav li a .icon svg{width:20px;height:20px}
-        .sidebar-footer{padding:12px 0;border-top:1px solid rgba(255,255,255,0.08)}
-        .sidebar-footer a{display:flex;align-items:center;padding:12px 24px;color:rgba(255,255,255,0.5);
-            font-size:14px;gap:12px;transition:color 0.2s}
-        .sidebar-footer a:hover{color:var(--danger)}
+        .sidebar-footer{padding:16px 12px;border-top:1px solid rgba(255,255,255,0.08)}
+        .sidebar-footer a{display:flex;align-items:center;padding:14px 18px;color:rgba(255,255,255,0.6);
+            font-size:14px;gap:14px;transition:var(--transition);border-radius:12px}
+        .sidebar-footer a:hover{background:rgba(239,68,68,0.15);color:#fca5a5}
         .sidebar-footer a .icon{width:20px;height:20px}
         .sidebar-footer a .icon svg{width:20px;height:20px}
         /* 手机端菜单按钮 */
         .menu-toggle{display:none;position:fixed;top:16px;left:16px;z-index:200;
-            width:40px;height:40px;background:var(--sidebar-bg);border:none;border-radius:8px;
+            width:40px;height:40px;background:#1a1a2e;border:none;border-radius:8px;
             color:#fff;cursor:pointer;align-items:center;justify-content:center}
         .menu-toggle svg{width:24px;height:24px}
         /* 遮罩 */
         .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:90}
         /* ===== 主内容区 ===== */
         .main-content{flex:1;margin-left:var(--sidebar-w);min-width:0}
-        .topbar{height:64px;background:var(--card-bg);border-bottom:1px solid var(--border);
-            display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:50}
-        .topbar h1{font-size:18px;font-weight:700}
+        /* ===== 顶部栏（玻璃拟态） ===== */
+        .topbar{background:rgba(255,255,255,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+            border-bottom:1px solid rgba(255,255,255,0.5);box-shadow:0 1px 3px rgba(0,0,0,0.05);
+            display:flex;align-items:center;justify-content:space-between;padding:16px 32px;position:sticky;top:0;z-index:50}
+        .topbar h1{font-size:22px;font-weight:700;
+            background:var(--primary-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
         .topbar-right{display:flex;align-items:center;gap:16px}
-        .admin-name{font-size:14px;color:var(--text-secondary)}
+        /* 管理员名前绿色呼吸圆点 */
+        .admin-name{font-size:14px;color:var(--text-secondary);font-weight:500;display:flex;align-items:center;gap:8px}
+        .admin-name::before{content:'';width:10px;height:10px;background:#10b981;border-radius:50%;animation:pulse 2s infinite}
+        @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.2)}}
         .content{padding:24px 32px}
-        /* ===== 卡片 ===== */
+        /* ===== 卡片（半透明白 + 大阴影 + 入场动画） ===== */
         .card{background:var(--card-bg);border-radius:var(--card-radius);box-shadow:var(--card-shadow);
-            margin-bottom:24px;overflow:hidden}
-        .card-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;
-            align-items:center;justify-content:space-between}
-        .card-header h3{font-size:16px;font-weight:600}
-        .card-header a{color:var(--primary);font-size:13px}
+            margin-bottom:24px;overflow:hidden;border:1px solid rgba(255,255,255,0.8);
+            transition:var(--transition);animation:fadeInUp 0.5s ease-out 0.5s both}
+        .card:hover{transform:translateY(-8px);box-shadow:var(--card-shadow-hover)}
+        .card-header{padding:20px 24px;border-bottom:1px solid rgba(0,0,0,0.06);
+            background:linear-gradient(180deg,#fff 0%,#f9fafb 100%);
+            display:flex;align-items:center;justify-content:space-between}
+        .card-header h3{font-size:16px;font-weight:700;display:flex;align-items:center;gap:10px}
+        /* 标题前紫色渐变竖条 */
+        .card-header h3::before{content:'';width:4px;height:20px;background:var(--primary-grad);border-radius:2px}
+        .card-header a{color:var(--primary);font-size:13px;font-weight:600}
         .card-body{padding:24px}
         /* ===== 统计卡片网格 ===== */
-        .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:24px}
+        .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-bottom:32px}
         .stat-card{background:var(--card-bg);border-radius:var(--card-radius);box-shadow:var(--card-shadow);
-            padding:24px;display:flex;align-items:center;gap:16px;transition:transform 0.2s}
-        .stat-card:hover{transform:translateY(-2px)}
-        .stat-icon{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-        .stat-icon svg{width:24px;height:24px;color:#fff}
+            padding:24px;display:flex;align-items:center;gap:20px;transition:var(--transition);
+            border:1px solid rgba(255,255,255,0.8);position:relative;overflow:hidden;
+            animation:fadeInUp 0.5s ease-out both}
+        /* 顶部渐变条（hover 显示） */
+        .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;
+            background:var(--primary-grad);opacity:0;transition:var(--transition)}
+        .stat-card:hover{transform:translateY(-8px);box-shadow:var(--card-shadow-hover)}
+        .stat-card:hover::before{opacity:1}
+        .stat-icon{width:64px;height:64px;border-radius:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+            box-shadow:0 8px 20px rgba(0,0,0,0.15)}
+        .stat-icon svg{width:28px;height:28px;color:#fff}
         .stat-icon.purple{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)}
         .stat-icon.blue{background:linear-gradient(135deg,#0ea5e9 0%,#2563eb 100%)}
         .stat-icon.green{background:linear-gradient(135deg,#10b981 0%,#059669 100%)}
         .stat-icon.orange{background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%)}
-        .stat-info h4{font-size:13px;color:var(--text-secondary);font-weight:500;margin-bottom:4px}
-        .stat-info .value{font-size:24px;font-weight:800;color:var(--text-primary)}
+        .stat-info h4{font-size:14px;color:var(--text-secondary);font-weight:500;margin-bottom:4px}
+        .stat-info .value{font-size:28px;font-weight:800;color:var(--text-primary);letter-spacing:-0.5px;line-height:1.2}
         .stat-info .value small{font-size:14px;font-weight:500;color:var(--text-secondary)}
         /* ===== 图表区域 ===== */
         .chart-grid{display:grid;grid-template-columns:2fr 1fr;gap:24px}
         .chart-wrapper{height:300px;position:relative}
         /* ===== 排行列表 ===== */
-        .ranking-item{display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(0,0,0,0.04);transition:background 0.2s}
+        .ranking-item{display:flex;align-items:center;padding:14px 24px;border-bottom:1px solid rgba(0,0,0,0.04);transition:var(--transition)}
         .ranking-item:last-child{border-bottom:none}
-        .ranking-item:hover{background:rgba(102,126,234,0.03)}
-        .ranking-pos{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+        .ranking-item:hover{background:rgba(102,126,234,0.04)}
+        .ranking-pos{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;
             font-size:12px;font-weight:700;margin-right:14px;flex-shrink:0}
         .ranking-pos.gold{background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#fff}
         .ranking-pos.silver{background:linear-gradient(135deg,#9ca3af,#6b7280);color:#fff}
@@ -107,7 +145,92 @@
         .ranking-name{flex:1;font-weight:500}
         .ranking-value{font-weight:700;color:var(--primary)}
         .empty-msg{padding:40px;text-align:center;color:var(--text-secondary)}
+        /* ===== 入场动画（依次延迟） ===== */
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        .stat-card:nth-child(1){animation-delay:0.1s}
+        .stat-card:nth-child(2){animation-delay:0.2s}
+        .stat-card:nth-child(3){animation-delay:0.3s}
+        .stat-card:nth-child(4){animation-delay:0.4s}
+        /* ===== 环比变化 ===== */
+        .stat-change{font-size:12px;margin-top:6px;font-weight:600}
+        .stat-change.up{color:#059669}
+        .stat-change.down{color:#dc2626}
+        .stat-change.flat{color:var(--text-secondary);font-weight:500}
+        /* ===== 数据大屏网格 ===== */
+        .dashboard-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px}
+        /* ===== 总体流量环形仪表盘 ===== */
+        .gauge-container{display:flex;flex-direction:column;align-items:center;padding:30px}
+        .gauge-wrapper{position:relative;width:200px;height:200px}
+        .gauge-circle{transform:rotate(-90deg)}
+        .gauge-outer{fill:none;stroke:rgba(102,126,234,0.15);stroke-width:2}
+        .gauge-bg{fill:none;stroke:#e5e7eb;stroke-width:12}
+        .gauge-fill{fill:none;stroke-width:12;stroke-linecap:round;transition:stroke-dashoffset 1s ease}
+        .gauge-fill.normal{stroke:url(#gradient-normal)}
+        .gauge-fill.warning{stroke:url(#gradient-warning)}
+        .gauge-fill.danger{stroke:url(#gradient-danger)}
+        .gauge-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+        .gauge-value{font-size:36px;font-weight:800;color:var(--text-primary);line-height:1}
+        .gauge-unit{font-size:13px;color:var(--text-secondary);margin-top:6px}
+        .gauge-info{display:flex;gap:24px;margin-top:20px}
+        .gauge-info-item{text-align:center}
+        .gauge-info-value{font-size:18px;font-weight:700;color:var(--text-primary)}
+        .gauge-info-label{font-size:12px;color:var(--text-secondary);margin-top:2px}
+        /* ===== 预计月底流量预测框 ===== */
+        .prediction-box{background:linear-gradient(135deg,rgba(102,126,234,0.08),rgba(118,75,162,0.08));
+            border-radius:12px;padding:16px 20px;margin-top:20px;display:flex;
+            justify-content:space-between;align-items:center;width:100%}
+        .prediction-label{font-size:13px;color:var(--text-secondary)}
+        .prediction-value{font-size:18px;font-weight:700;color:var(--primary)}
+        /* ===== 流量构成 breakdown ===== */
+        .traffic-breakdown{padding:24px}
+        .breakdown-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+        .breakdown-title{font-size:15px;font-weight:600;color:var(--text-primary)}
+        .breakdown-total{font-size:24px;font-weight:800;color:var(--primary)}
+        .breakdown-bars{display:flex;flex-direction:column;gap:20px}
+        .breakdown-item{display:flex;flex-direction:column;gap:8px}
+        .breakdown-item-header{display:flex;justify-content:space-between;align-items:center}
+        .breakdown-item-label{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:#374151}
+        .breakdown-item-dot{width:10px;height:10px;border-radius:50%}
+        .breakdown-item-dot.in{background:linear-gradient(135deg,#11998e 0%,#38ef7d 100%)}
+        .breakdown-item-dot.out{background:linear-gradient(135deg,#ee0979 0%,#ff6a00 100%)}
+        .breakdown-item-value{font-size:14px;font-weight:600;color:var(--text-primary)}
+        .breakdown-bar{height:12px;background:#f3f4f6;border-radius:6px;overflow:hidden}
+        .breakdown-bar-fill{height:100%;border-radius:6px;transition:width 0.5s ease;width:0}
+        .breakdown-bar-fill.in{background:linear-gradient(90deg,#11998e 0%,#38ef7d 100%)}
+        .breakdown-bar-fill.out{background:linear-gradient(90deg,#ee0979 0%,#ff6a00 100%)}
+        /* ===== 各配置流量仪表盘卡片 ===== */
+        .config-gauges{display:flex;flex-wrap:wrap;gap:20px;padding:24px}
+        .config-gauge-card{flex:1 1 calc(50% - 10px);min-width:280px;max-width:100%;
+            background:linear-gradient(135deg,#f8fafc 0%,#fff 100%);border-radius:16px;padding:24px;
+            border:1px solid rgba(0,0,0,0.05);transition:transform 0.3s,box-shadow 0.3s}
+        .config-gauges .config-gauge-card:only-child{flex:1 1 100%}
+        .config-gauge-card:hover{transform:translateY(-4px);box-shadow:0 12px 24px rgba(0,0,0,0.1)}
+        .config-gauge-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+        .config-gauge-name{font-size:16px;font-weight:700;color:var(--text-primary)}
+        .config-gauge-badge{font-size:11px;padding:4px 10px;border-radius:20px;font-weight:600}
+        .config-gauge-badge.safe{background:rgba(16,185,129,0.1);color:#059669}
+        .config-gauge-badge.warning{background:rgba(245,158,11,0.1);color:#d97706}
+        .config-gauge-badge.danger{background:rgba(239,68,68,0.1);color:#dc2626}
+        .config-gauge-body{display:flex;align-items:center;gap:20px}
+        .config-gauge-circle{position:relative;width:100px;height:100px;flex-shrink:0}
+        .config-gauge-circle svg{transform:rotate(-90deg)}
+        .config-gauge-circle .gauge-bg-sm{fill:none;stroke:#e5e7eb;stroke-width:8}
+        .config-gauge-circle .gauge-fill-sm{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 0.5s ease}
+        .config-gauge-circle .gauge-center-sm{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+        .config-gauge-circle .gauge-value-sm{font-size:20px;font-weight:800;color:var(--text-primary)}
+        .config-gauge-circle .gauge-unit-sm{font-size:10px;color:var(--text-secondary)}
+        .config-gauge-stats{flex:1;min-width:0}
+        .config-gauge-stat{display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px}
+        .config-gauge-stat-label{color:var(--text-secondary)}
+        .config-gauge-stat-value{font-weight:600;color:var(--text-primary)}
+        .config-gauge-progress{margin-top:16px}
+        .config-gauge-progress-bar{height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden}
+        .config-gauge-progress-fill{height:100%;border-radius:4px;transition:width 0.5s ease}
+        .config-gauge-progress-labels{display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--text-secondary)}
         /* ===== 响应式 ===== */
+        @media(max-width:1200px){
+            .dashboard-grid{grid-template-columns:1fr}
+        }
         @media(max-width:1024px){
             .stats-grid{grid-template-columns:repeat(2,1fr)}
             .chart-grid{grid-template-columns:1fr}
@@ -119,8 +242,10 @@
             .menu-toggle{display:flex}
             .main-content{margin-left:0}
             .content{padding:16px}
-            .topbar{padding:0 16px 0 56px}
+            .topbar{padding:12px 16px 12px 56px}
+            .topbar h1{font-size:18px}
             .stats-grid{grid-template-columns:1fr}
+            .config-gauges .config-gauge-card{flex:1 1 100%}
         }
     </style>
 </head>
@@ -215,6 +340,7 @@
                         <div class="stat-info">
                             <h4>今日流量</h4>
                             <div class="value" id="statTodayTraffic">- <small>GB</small></div>
+                            <div class="stat-change flat" id="todayChange">vs 昨日 -</div>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -233,6 +359,113 @@
                         <div class="stat-info">
                             <h4>本月流量</h4>
                             <div class="value" id="statMonthTraffic">- <small>GB</small></div>
+                            <div class="stat-change flat" id="monthChange">vs 上月 -</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 各配置流量使用仪表盘 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>各配置流量使用仪表盘</h3>
+                        <a href="config.html">管理配置</a>
+                    </div>
+                    <div class="config-gauges" id="configGauges">
+                        <div class="empty-msg">加载中...</div>
+                    </div>
+                </div>
+
+                <!-- 总体流量仪表盘 + 流量构成 -->
+                <div class="dashboard-grid">
+                    <!-- 总体流量环形仪表盘 -->
+                    <div class="card">
+                        <div class="card-header"><h3>总体流量统计</h3></div>
+                        <div class="gauge-container">
+                            <div class="gauge-wrapper">
+                                <svg class="gauge-circle" width="200" height="200" viewBox="0 0 200 200">
+                                    <defs>
+                                        <linearGradient id="gradient-normal" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stop-color="#667eea"/>
+                                            <stop offset="100%" stop-color="#764ba2"/>
+                                        </linearGradient>
+                                        <linearGradient id="gradient-warning" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stop-color="#f59e0b"/>
+                                            <stop offset="100%" stop-color="#fbbf24"/>
+                                        </linearGradient>
+                                        <linearGradient id="gradient-danger" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stop-color="#ef4444"/>
+                                            <stop offset="100%" stop-color="#f87171"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <!-- 外圈装饰环 r=95 -->
+                                    <circle class="gauge-outer" cx="100" cy="100" r="95"/>
+                                    <!-- 背景环 r=80 -->
+                                    <circle class="gauge-bg" cx="100" cy="100" r="80"/>
+                                    <!-- 进度环 r=80，周长 = 2π×80 ≈ 502.65 -->
+                                    <circle class="gauge-fill normal" id="totalGaugeFill" cx="100" cy="100" r="80"
+                                            stroke-dasharray="502.65" stroke-dashoffset="502.65"/>
+                                </svg>
+                                <div class="gauge-center">
+                                    <div class="gauge-value" id="totalGaugeValue">0%</div>
+                                    <div class="gauge-unit">总体使用率</div>
+                                </div>
+                            </div>
+                            <div class="gauge-info">
+                                <div class="gauge-info-item">
+                                    <div class="gauge-info-value" id="totalUsed">-</div>
+                                    <div class="gauge-info-label">已使用</div>
+                                </div>
+                                <div class="gauge-info-item">
+                                    <div class="gauge-info-value" id="totalQuota">-</div>
+                                    <div class="gauge-info-label">总配额</div>
+                                </div>
+                                <div class="gauge-info-item">
+                                    <div class="gauge-info-value" id="totalRemain">-</div>
+                                    <div class="gauge-info-label">剩余</div>
+                                </div>
+                            </div>
+                            <!-- 预计月底流量预测框 -->
+                            <div class="prediction-box">
+                                <span class="prediction-label">预计月底流量</span>
+                                <span class="prediction-value" id="predictedTraffic">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 流量构成 breakdown -->
+                    <div class="card">
+                        <div class="card-header"><h3>流量构成</h3></div>
+                        <div class="traffic-breakdown">
+                            <div class="breakdown-header">
+                                <span class="breakdown-title">本月流量构成</span>
+                                <span class="breakdown-total" id="breakdownTotal">-</span>
+                            </div>
+                            <div class="breakdown-bars">
+                                <div class="breakdown-item">
+                                    <div class="breakdown-item-header">
+                                        <span class="breakdown-item-label">
+                                            <span class="breakdown-item-dot in"></span>
+                                            入站流量
+                                        </span>
+                                        <span class="breakdown-item-value" id="breakdownInValue">-</span>
+                                    </div>
+                                    <div class="breakdown-bar">
+                                        <div class="breakdown-bar-fill in" id="breakdownInBar"></div>
+                                    </div>
+                                </div>
+                                <div class="breakdown-item">
+                                    <div class="breakdown-item-header">
+                                        <span class="breakdown-item-label">
+                                            <span class="breakdown-item-dot out"></span>
+                                            出站流量
+                                        </span>
+                                        <span class="breakdown-item-value" id="breakdownOutValue">-</span>
+                                    </div>
+                                    <div class="breakdown-bar">
+                                        <div class="breakdown-bar-fill out" id="breakdownOutBar"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -273,33 +506,212 @@
             function toGB(bytes){return(bytes/1024/1024/1024).toFixed(2)}
 
             /**
-             * 加载仪表盘数据
+             * HTML转义，防止配置名称注入
+             * @param {string} str - 原始字符串
+             * @returns {string} 转义后的字符串
              */
-            fetch('/api/traffic/dashboard',{headers:authHeaders()})
-                .then(function(r){return r.json()})
+            function escapeHtml(str){
+                return String(str==null?'':str).replace(/[&<>"']/g,function(c){
+                    return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+                });
+            }
+
+            /**
+             * 渲染环比变化（绿色上升/红色下降）
+             * @param {string} elId - 元素ID
+             * @param {string} label - 对比标签，如 "vs 昨日"
+             * @param {number} current - 当前值（GB）
+             * @param {number} previous - 对比基期值（GB），为0时无法计算
+             */
+            function renderChange(elId,label,current,previous){
+                var el=document.getElementById(elId);
+                if(!previous||previous<=0){
+                    el.className='stat-change flat';
+                    el.textContent=label+' -';
+                    return;
+                }
+                var change=(current-previous)/previous*100;
+                var rounded=Math.round(change*10)/10;
+                if(rounded>=0){
+                    el.className='stat-change up';
+                    el.textContent=label+' +'+rounded+'%';
+                }else{
+                    el.className='stat-change down';
+                    el.textContent=label+' '+rounded+'%';
+                }
+            }
+
+            /**
+             * 渲染总体流量环形仪表盘
+             * @param {number} percent - 总体使用率百分比
+             * @param {number} usedGB - 已使用流量（GB）
+             * @param {number} quotaGB - 总配额（GB）
+             */
+            function renderTotalGauge(percent,usedGB,quotaGB){
+                // 根据使用率切换颜色：>=80 红色 danger / >=60 橙色 warning / 其余紫色 normal
+                var cls=percent>=80?'danger':(percent>=60?'warning':'normal');
+                var fill=document.getElementById('totalGaugeFill');
+                fill.setAttribute('class','gauge-fill '+cls);
+                // r=80 圆周 = 2π×80 ≈ 502.65，通过 dashoffset 控制进度（CSS transition 实现动画）
+                var C=2*Math.PI*80;
+                requestAnimationFrame(function(){
+                    fill.style.strokeDashoffset=(C*(1-percent/100)).toFixed(2);
+                });
+                document.getElementById('totalGaugeValue').textContent=percent+'%';
+                document.getElementById('totalUsed').textContent=usedGB.toFixed(1)+' GB';
+                document.getElementById('totalQuota').textContent=quotaGB.toFixed(1)+' GB';
+                document.getElementById('totalRemain').textContent=Math.max(0,quotaGB-usedGB).toFixed(1)+' GB';
+            }
+
+            /**
+             * 渲染各配置流量仪表盘卡片
+             * @param {Array} configs - 配置列表（含 month_traffic_gb / max_traffic_gb / alert_threshold 等）
+             */
+            function renderConfigGauges(configs){
+                var box=document.getElementById('configGauges');
+                if(!configs||!configs.length){
+                    box.innerHTML='<div class="empty-msg">暂无启用的配置，<a href="config.html" style="color:var(--primary)">去添加配置</a></div>';
+                    return;
+                }
+                var html='';
+                configs.forEach(function(c){
+                    var trafficGB=c.month_traffic_gb||0;
+                    var maxTraffic=c.max_traffic_gb||1000;
+                    var threshold=c.alert_threshold||80;
+                    var percent=maxTraffic>0?Math.min(100,Math.round(trafficGB/maxTraffic*1000)/10):0;
+                    var remaining=Math.max(0,maxTraffic-trafficGB);
+                    // 状态：超过阈值=超限预警（红），达到阈值80%=接近阈值（橙），其余=安全（绿）
+                    var statusClass=percent>=threshold?'danger':(percent>=threshold*0.8?'warning':'safe');
+                    var statusText=percent>=threshold?'超限预警':(percent>=threshold*0.8?'接近阈值':'安全');
+                    var barColor=percent>=threshold?'#ef4444':(percent>=threshold*0.8?'#f59e0b':'#10b981');
+                    // 小圆环 r=42 周长
+                    var circumference=2*Math.PI*42;
+                    var dashoffset=circumference*(1-percent/100);
+                    html+='<div class="config-gauge-card">'
+                        +'<div class="config-gauge-header">'
+                        +'<span class="config-gauge-name">'+escapeHtml(c.name||'未命名')+'</span>'
+                        +'<span class="config-gauge-badge '+statusClass+'">'+statusText+'</span>'
+                        +'</div>'
+                        +'<div class="config-gauge-body">'
+                        +'<div class="config-gauge-circle">'
+                        +'<svg width="100" height="100" viewBox="0 0 100 100">'
+                        +'<circle class="gauge-bg-sm" cx="50" cy="50" r="42"/>'
+                        +'<circle class="gauge-fill-sm" cx="50" cy="50" r="42" style="stroke:'+barColor+';stroke-dasharray:'+circumference.toFixed(2)+';stroke-dashoffset:'+dashoffset.toFixed(2)+'"/>'
+                        +'</svg>'
+                        +'<div class="gauge-center-sm">'
+                        +'<div class="gauge-value-sm">'+percent+'%</div>'
+                        +'<div class="gauge-unit-sm">已使用</div>'
+                        +'</div>'
+                        +'</div>'
+                        +'<div class="config-gauge-stats">'
+                        +'<div class="config-gauge-stat"><span class="config-gauge-stat-label">已使用</span><span class="config-gauge-stat-value">'+trafficGB.toFixed(2)+' GB</span></div>'
+                        +'<div class="config-gauge-stat"><span class="config-gauge-stat-label">总配额</span><span class="config-gauge-stat-value">'+maxTraffic.toFixed(0)+' GB</span></div>'
+                        +'<div class="config-gauge-stat"><span class="config-gauge-stat-label">剩余</span><span class="config-gauge-stat-value" style="color:'+barColor+'">'+remaining.toFixed(2)+' GB</span></div>'
+                        +'<div class="config-gauge-stat"><span class="config-gauge-stat-label">提醒阈值</span><span class="config-gauge-stat-value">'+threshold+'%</span></div>'
+                        +'</div>'
+                        +'</div>'
+                        +'<div class="config-gauge-progress">'
+                        +'<div class="config-gauge-progress-bar"><div class="config-gauge-progress-fill" style="width:'+percent+'%;background:'+barColor+'"></div></div>'
+                        +'<div class="config-gauge-progress-labels">'
+                        +'<span>入站: '+(c.month_in_gb||0).toFixed(2)+' GB</span>'
+                        +'<span>出站: '+(c.month_out_gb||0).toFixed(2)+' GB</span>'
+                        +'</div>'
+                        +'</div>'
+                        +'</div>';
+                });
+                box.innerHTML=html;
+            }
+
+            /**
+             * 渲染流量构成 breakdown 条形图（入站绿色 / 出站红橙色）
+             * @param {Array} configs - 配置列表，汇总各配置入站/出站流量
+             */
+            function renderBreakdown(configs){
+                var totalIn=0,totalOut=0;
+                (configs||[]).forEach(function(c){
+                    totalIn+=c.month_in_gb||0;
+                    totalOut+=c.month_out_gb||0;
+                });
+                // 以两者较大值为满刻度，保证条形对比直观
+                var maxVal=Math.max(totalIn,totalOut,0.01);
+                document.getElementById('breakdownTotal').textContent=(totalIn+totalOut).toFixed(2)+' GB';
+                document.getElementById('breakdownInValue').textContent=totalIn.toFixed(2)+' GB';
+                document.getElementById('breakdownOutValue').textContent=totalOut.toFixed(2)+' GB';
+                // 延迟设置宽度触发 CSS 过渡动画
+                requestAnimationFrame(function(){
+                    document.getElementById('breakdownInBar').style.width=(totalIn/maxVal*100).toFixed(1)+'%';
+                    document.getElementById('breakdownOutBar').style.width=(totalOut/maxVal*100).toFixed(1)+'%';
+                });
+            }
+
+            /**
+             * 渲染预计月底流量预测
+             * 预测公式：本月已用 + 日均 × 剩余天数（日均 = 本月出站 / 有记录天数）
+             * @param {number} monthOutGB - 本月出站流量（GB）
+             * @param {number} recordDays - 本月有流量记录的天数
+             */
+            function renderPrediction(monthOutGB,recordDays){
+                var avgDaily=recordDays>0?monthOutGB/recordDays:0;
+                var now=new Date();
+                var daysInMonth=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+                var remainingDays=Math.max(0,daysInMonth-now.getDate());
+                var predicted=monthOutGB+avgDaily*remainingDays;
+                document.getElementById('predictedTraffic').textContent=predicted.toFixed(2)+' GB';
+            }
+
+            /**
+             * 加载仪表盘数据并渲染所有模块
+             */
+            authFetch('/api/traffic/dashboard')
                 .then(function(resp){
                     if(!resp.success){return}
                     var d=resp.data;
+                    var GB=1024*1024*1024;
+                    var todayGB=(d.todayTraffic||0)/GB;
+                    var yesterdayGB=(d.yesterdayTraffic||0)/GB;
+                    var monthTotalGB=(d.monthTrafficTotal||0)/GB;
+                    var monthOutGB=(d.monthTrafficOut||0)/GB;
+                    var lastMonthGB=(d.lastMonthTrafficTotal||0)/GB;
+
                     // 渲染统计卡片
                     document.getElementById('statConfigCount').innerHTML=d.configCount+' / '+d.totalConfigCount;
                     document.getElementById('statTodayTraffic').innerHTML=toGB(d.todayTraffic)+' <small>GB</small>';
                     document.getElementById('statYesterdayTraffic').innerHTML=toGB(d.yesterdayTraffic)+' <small>GB</small>';
                     document.getElementById('statMonthTraffic').innerHTML=toGB(d.monthTrafficOut||d.monthTrafficTotal)+' <small>GB</small>';
 
-                    // 渲染趋势图
+                    // 渲染环比：今日 vs 昨日、本月 vs 上月
+                    renderChange('todayChange','vs 昨日',todayGB,yesterdayGB);
+                    renderChange('monthChange','vs 上月',monthTotalGB,lastMonthGB);
+
+                    // 渲染总体环形仪表盘
+                    renderTotalGauge(d.totalTrafficPercent||0,d.totalCurrentTraffic||0,d.totalMaxTraffic||0);
+
+                    // 渲染各配置仪表盘卡片
+                    renderConfigGauges(d.configs);
+
+                    // 渲染流量构成 breakdown
+                    renderBreakdown(d.configs);
+
+                    // 渲染预计月底流量
+                    renderPrediction(monthOutGB,d.recordDays||0);
+
+                    // 渲染近7天趋势柱状图
                     var labels=[],data=[];
                     if(d.weeklyStats&&d.weeklyStats.length){
                         d.weeklyStats.forEach(function(r){
                             labels.push(r.record_date.substring(5));
-                            data.push((r.traffic_total/1024/1024/1024).toFixed(2));
+                            data.push((r.traffic_total/GB).toFixed(2));
                         });
                     }
                     new Chart(document.getElementById('trendChart'),{
-                        type:'line',
+                        type:'bar',
                         data:{labels:labels,datasets:[{
                             label:'每日流量(GB)',data:data,
-                            borderColor:'#667eea',backgroundColor:'rgba(102,126,234,0.1)',
-                            fill:true,tension:0.4,pointBackgroundColor:'#667eea',pointRadius:5,pointHoverRadius:7
+                            backgroundColor:'rgba(102, 126, 234, 0.7)',
+                            borderColor:'#667eea',
+                            borderWidth:1,
+                            borderRadius:6,
+                            maxBarThickness:50
                         }]},
                         options:{
                             responsive:true,maintainAspectRatio:false,
@@ -320,7 +732,7 @@
                         d.ranking.forEach(function(r,i){
                             var cls=i===0?'gold':i===1?'silver':i===2?'bronze':'normal';
                             html+='<div class="ranking-item"><div class="ranking-pos '+cls+'">'+(i+1)+'</div>'
-                                +'<div class="ranking-name">'+(r.name||'未命名')+'</div>'
+                                +'<div class="ranking-name">'+escapeHtml(r.name||'未命名')+'</div>'
                                 +'<div class="ranking-value">'+toGB(r.traffic_total)+' GB</div></div>';
                         });
                     }else{
