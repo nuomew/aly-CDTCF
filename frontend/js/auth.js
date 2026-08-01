@@ -72,7 +72,9 @@ function authFetchJSON(url, method, body) {
 function checkLoginStatus(callback) {
   authFetch('/api/auth/check').then(function(d) {
     if (d.success && d.data && d.data.logged_in) {
-      if (callback) callback(d.data.admin);
+      if (callback) {
+        try { callback(d.data.admin); } catch(e) { console.error('callback error:', e); }
+      }
     } else {
       window.location.href = 'login.html';
     }

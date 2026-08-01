@@ -30,6 +30,8 @@
         .main-content{flex:1;margin-left:var(--sidebar-w);min-width:0}
         .topbar{height:64px;background:var(--card-bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:50}
         .topbar h1{font-size:18px;font-weight:700}
+        .topbar-right{display:flex;align-items:center;gap:16px}
+        .admin-name{font-size:14px;color:var(--text-secondary)}
         .content{padding:24px 32px}
         /* 按钮 */
         .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s}
@@ -115,7 +117,7 @@
         </aside>
 
         <main class="main-content">
-            <header class="topbar"><h1>阿里云配置</h1></header>
+            <header class="topbar"><h1>阿里云配置</h1><div class="topbar-right"><span class="admin-name" id="adminName"></span></div></header>
             <div class="content">
                 <div class="card">
                     <div class="card-header">
