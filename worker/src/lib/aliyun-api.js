@@ -108,6 +108,9 @@ export async function aliyunRequest({ accessKeyId, accessKeySecret, endpoint, ap
       isSuccess = true;
     } else if (result.Success === true) {
       isSuccess = true;
+    } else if (code === undefined && !result.Message) {
+      // 阿里云部分API（如DescribeInstanceAttribute）成功时无Code字段
+      isSuccess = true;
     }
 
     if (!isSuccess && code !== undefined && code !== null) {

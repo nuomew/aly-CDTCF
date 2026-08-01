@@ -759,7 +759,7 @@
                 +detailRow('CPU',(d.cpu||'-')+' 核')
                 +detailRow('内存',(d.memory?(d.memory/1024).toFixed(0):'-')+' GB')
                 +detailRow('操作系统',esc(d.osName||'-'))
-                +detailRow('付费类型',esc(formatCharge(d.internetChargeType)||'-'))
+                +detailRow('付费类型',esc(d.instanceChargeTypeText||formatCharge(d.instanceChargeType)||'-'))
                 +detailRow('到期时间',d.expiredTime?('<span class="'+(expiring?'expiring':'')+'">'+esc(d.expiredTime)+(expiring?' ⚠️':'')+'</span>'):'-',expiring)
                 +detailRow('创建时间',esc(d.creationTime||'-'))
                 +'</div></div>'
@@ -768,7 +768,9 @@
                 +detailRow('公网IP',esc(publicIp))
                 +detailRow('内网IP',esc(innerIp))
                 +detailRow('VPC ID',esc(d.vpcId||'-'))
+                +detailRow('交换机ID',esc(d.vswitchId||'-'))
                 +detailRow('地域',esc(regionName(d.regionId)))
+                +detailRow('网络类型',esc(d.networkType||'-'))
                 +detailRow('带宽',(d.internetMaxBandwidthOut||0)+' Mbps')
                 +'</div></div>'
                 // 磁盘信息面板（占两列）

@@ -156,6 +156,11 @@ async function getInstanceDetail(request, env) {
   if (!result.success) return errorResponse('获取实例详情失败: ' + result.error);
 
   const data = result.data;
+  // 内网IP：优先从VPC属性获取，其次从经典网络属性获取
+  const privateIpList = data.VpcAttributes?.PrivateIpAddress?.IpAddress
+    || data.InnerIpAddress?.IpAddress
+    || [];
+
   return jsonResponse({
     instanceId: data.InstanceId,
     instanceName: data.InstanceName || '',
@@ -166,7 +171,7 @@ async function getInstanceDetail(request, env) {
     osName: data.OSName || '',
     regionId: data.RegionId,
     publicIp: data.PublicIpAddress?.IpAddress || [],
-    innerIp: data.InnerIpAddress?.IpAddress || [],
+    innerIp: privateIpList,
     vpcId: data.VpcAttributes?.VpcId || '',
     vswitchId: data.VpcAttributes?.VSwitchId || '',
     securityGroupIds: data.SecurityGroupIds?.SecurityGroupId || [],
@@ -177,7 +182,10 @@ async function getInstanceDetail(request, env) {
     expiredTime: data.ExpiredTime || '',
     imageId: data.ImageId || '',
     cpu: data.Cpu || 0,
-    memory: data.Memory || 0
+    memory: data.Memory || 0,
+    instanceChargeType: data.InstanceChargeType || '',
+    instanceChargeTypeText: formatChargeType(data.InstanceChargeType || ''),
+    networkType: data.NetworkType || ''
   });
 }
 
