@@ -98,25 +98,33 @@ export async function aliyunRequest({ accessKeyId, accessKeySecret, endpoint, ap
 
     const result = await response.json();
 
-    // 检查响应码（与PHP版逻辑一致：只有Code字段存在才判定为失败）
+    // 检查响应码
     const code = result.Code;
+    let isSuccess = false;
 
-    if (code !== undefined && code !== null) {
-      // 有Code字段说明是错误响应
-      let errorMsg = result.Message || '请求失败';
-      if (result.Recommend) errorMsg += ' 建议: ' + result.Recommend;
+    if (code === 200 || code === '200') {
+      isSuccess = true;
+    } else if (typeof code === 'string' && code.toLowerCase() === 'success') {
+      isSuccess = true;
+    } else if (result.Success === true) {
+      isSuccess = true;
+    } else if (code === undefined && !result.Message) {
+      // 阿里云部分API（如DescribeInstanceAttribute）成功时无Code字段
+      isSuccess = true;
+    }
+
+    if (!isSuccess && code !== undefined && code !== null) {
       return {
         success: false,
-        error: errorMsg + ' (Code: ' + code + ')',
+        error: (result.Message || '请求失败') + ' (Code: ' + code + ')',
         code: code,
         requestId: result.RequestId || ''
       };
     }
 
-    // 无Code字段 = 成功
     return {
       success: true,
-      data: result,
+      data: result.Data || result,
       requestId: result.RequestId || ''
     };
   } catch (err) {

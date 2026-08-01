@@ -470,6 +470,12 @@
          */
         function esc(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
+        function formatMemory(mb){
+            var gb=mb/1024;
+            if(gb<1)return gb.toFixed(2)+' GB';
+            return gb.toFixed(1)+' GB';
+        }
+
         /**
          * 获取地域中文名
          * @param {string} regionId - 地域ID
@@ -757,8 +763,8 @@
                 +detailRow('实例状态','<span class="server-status '+statusClass+'">'+esc(d.statusText||d.status||'-')+'</span>')
                 +detailRow('实例规格',esc(d.instanceType||'-'))
                 +detailRow('CPU',(d.cpu||'-')+' 核')
-                +detailRow('内存',(d.memory?(d.memory/1024).toFixed(0):'-')+' GB')
-                +detailRow('操作系统',esc(d.osName||'-'))
+                +detailRow('内存',(d.memory?formatMemory(d.memory):'-'))
+                +detailRow('操作系统',esc(d.osName||d.osNameEn||d.OSType||'-'))
                 +detailRow('付费类型',esc(d.instanceChargeTypeText||formatCharge(d.instanceChargeType)||'-'))
                 +detailRow('到期时间',d.expiredTime?('<span class="'+(expiring?'expiring':'')+'">'+esc(d.expiredTime)+(expiring?' ⚠️':'')+'</span>'):'-',expiring)
                 +detailRow('创建时间',esc(d.creationTime||'-'))

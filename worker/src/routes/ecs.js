@@ -156,6 +156,11 @@ async function getInstanceDetail(request, env) {
   if (!result.success) return errorResponse('获取实例详情失败: ' + result.error);
 
   const data = result.data;
+  console.log('ECS详情原始数据:', JSON.stringify({
+    OSName: data.OSName, OSNameEn: data.OSNameEn, OSType: data.OSType,
+    Memory: data.Memory, Cpu: data.Cpu, InstanceType: data.InstanceType,
+    InstanceNetworkType: data.InstanceNetworkType, Status: data.Status
+  }));
   // 内网IP：优先从VPC属性获取，其次从经典网络属性获取
   const privateIpList = data.VpcAttributes?.PrivateIpAddress?.IpAddress
     || data.InnerIpAddress?.IpAddress
