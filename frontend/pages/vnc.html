@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VNC远程连接 - 阿里云流量查询系统</title>
+    <script src="/js/auth.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:#1a1a2e;min-height:100vh;display:flex;flex-direction:column;overflow:hidden}
+        .vnc-header{background:linear-gradient(135deg,#1a1a2e,#16213e);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.08);box-shadow:0 2px 20px rgba(0,0,0,0.3);z-index:10}
+        .vnc-title{display:flex;align-items:center;gap:12px}
+        .vnc-title-icon{width:40px;height:40px;background:rgba(255,255,255,0.1);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+        .vnc-title-text{color:#fff}
+        .vnc-title-name{font-size:16px;font-weight:700}
+        .vnc-title-id{font-size:12px;color:rgba(255,255,255,0.5);margin-top:2px}
+        .vnc-info{display:flex;gap:8px}
+        .vnc-badge{padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600}
+        .vnc-badge.os{background:rgba(102,126,234,0.2);color:#a5b4fc;border:1px solid rgba(102,126,234,0.3)}
+        .vnc-badge.region{background:rgba(16,185,129,0.2);color:#6ee7b7;border:1px solid rgba(16,185,129,0.3)}
+        .vnc-actions{display:flex;gap:8px}
+        .vnc-btn{padding:8px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:6px}
+        .vnc-btn.refresh{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+        .vnc-btn.refresh:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(102,126,234,0.4)}
+        .vnc-btn.close{background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)}
+        .vnc-btn.close:hover{background:rgba(239,68,68,0.25)}
+        .vnc-tips{padding:8px 24px;background:rgba(245,158,11,0.08);border-bottom:1px solid rgba(245,158,11,0.15);color:#fbbf24;font-size:12px;text-align:center}
+        .vnc-container{flex:1;position:relative;background:#0d1117}
+        .vnc-iframe{width:100%;height:100%;border:none}
+        .vnc-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0d1117;color:#6b7280}
+        .vnc-loading.hidden{display:none}
+        .vnc-loading-spinner{width:40px;height:40px;border:3px solid rgba(102,126,234,0.2);border-top-color:#667eea;border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:16px}
+        .vnc-loading-text{font-size:14px}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .vnc-error{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:#0d1117;color:#ef4444;text-align:center;padding:40px}
+        .vnc-error.show{display:flex}
+        .vnc-error-icon{font-size:48px;margin-bottom:16px}
+        .vnc-error-text{font-size:14px;margin-bottom:20px;max-width:400px;line-height:1.6}
+        @media(max-width:768px){
+            .vnc-header{flex-wrap:wrap;gap:8px;padding:12px 16px}
+            .vnc-info{order:3;width:100%;justify-content:center}
+            .vnc-tips{display:none}
+        }
+    </style>
+</head>
+<body>
+    <div class="vnc-header">
+        <div class="vnc-title">
+            <div class="vnc-title-icon">🖥️</div>
+            <div class="vnc-title-text">
+                <div class="vnc-title-name" id="instanceName">加载中...</div>
+                <div class="vnc-title-id" id="instanceId"></div>
+            </div>
+        </div>
+        <div class="vnc-info">
+            <span class="vnc-badge os" id="osBadge">--</span>
+            <span class="vnc-badge region" id="regionBadge">--</span>
+        </div>
+        <div class="vnc-actions">
+            <button class="vnc-btn refresh" onclick="refreshVnc()">🔄 刷新连接</button>
+            <button class="vnc-btn close" onclick="closeWindow()">✕ 关闭</button>
+        </div>
+    </div>
+    <div class="vnc-tips">VNC连接地址有效期为15秒，如连接失败请点击"刷新连接"重新获取。Linux系统请使用控制台登录，Windows系统可通过远程桌面或控制台操作。</div>
+    <div class="vnc-container">
+        <div class="vnc-loading" id="vncLoading">
+            <div class="vnc-loading-spinner"></div>
+            <div class="vnc-loading-text">正在建立VNC连接...</div>
+        </div>
+        <div class="vnc-error" id="vncError">
+            <div class="vnc-error-icon">⚠️</div>
+            <div class="vnc-error-text" id="errorText">连接失败</div>
+            <button class="vnc-btn refresh" onclick="refreshVnc()">重新连接</button>
+        </div>
+        <iframe class="vnc-iframe" id="vncIframe" src="about:blank"></iframe>
+    </div>
+
+    <script>
+        // 从 URL 参数获取实例信息
+        var params = new URLSearchParams(window.location.search);
+        var configId = params.get('config_id');
+        var instanceId = params.get('instance_id');
+        var instanceName = params.get('name') || instanceId;
+        var osName = params.get('os') || '';
+        var regionId = params.get('region') || '';
+
+        // 初始化页面信息
+        document.getElementById('instanceName').textContent = instanceName;
+        document.getElementById('instanceId').textContent = instanceId;
+        document.getElementById('osBadge').textContent = osName ? (osName.toLowerCase().includes('windows') ? 'Windows' : 'Linux') : 'Linux';
+        document.getElementById('regionBadge').textContent = regionId;
+
+        // 初始加载 VNC
+        loadVnc();
+
+        /**
+         * 加载 VNC 连接
+         */
+        function loadVnc() {
+            document.getElementById('vncLoading').classList.remove('hidden');
+            document.getElementById('vncError').classList.remove('show');
+
+            authFetchJSON('/api/ecs/instance/vnc', 'POST', {
+                config_id: parseInt(configId),
+                instance_id: instanceId
+            }).then(function(resp) {
+                if (!resp.success || !resp.data || !resp.data.vncUrl) {
+                    showError(resp.message || '获取VNC地址失败');
+                    return;
+                }
+                var vncUrl = resp.data.vncUrl;
+                var isWindows = osName.toLowerCase().includes('windows');
+                var fullUrl = 'https://g.alicdn.com/aliyun/ecs-console-vnc2/0.0.8/index.html?vncUrl=' + encodeURIComponent(vncUrl) + '&instanceId=' + encodeURIComponent(instanceId) + '&isWindows=' + isWindows;
+                document.getElementById('vncIframe').src = fullUrl;
+            }).catch(function(err) {
+                showError('网络错误，请检查连接');
+            });
+        }
+
+        /**
+         * 刷新 VNC 连接
+         */
+        function refreshVnc() {
+            loadVnc();
+        }
+
+        /**
+         * 显示错误
+         */
+        function showError(msg) {
+            document.getElementById('vncLoading').classList.add('hidden');
+            document.getElementById('errorText').textContent = msg;
+            document.getElementById('vncError').classList.add('show');
+        }
+
+        /**
+         * 关闭窗口
+         */
+        function closeWindow() {
+            if (window.opener) {
+                window.close();
+            } else {
+                window.location.href = '/pages/server.html';
+            }
+        }
+
+        // iframe 加载完成后隐藏 loading
+        document.getElementById('vncIframe').onload = function() {
+            setTimeout(function() {
+                document.getElementById('vncLoading').classList.add('hidden');
+            }, 500);
+        };
+    </script>
+</body>
+</html>

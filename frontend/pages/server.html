@@ -626,8 +626,8 @@
         function openVnc(index){
             var inst=instancesData[index];
             if(!inst)return;
-            var url='https://ecs.console.aliyun.com/vnc/'+inst.instanceId+'?regionId='+inst.regionId;
-            window.open(url,'_blank');
+            var url='/pages/vnc.html?config_id='+inst.configId+'&instance_id='+encodeURIComponent(inst.instanceId)+'&name='+encodeURIComponent(inst.instanceName||inst.instanceId)+'&os='+encodeURIComponent(inst.osName||'')+'&region='+encodeURIComponent(inst.regionId||'');
+            window.open(url,'_blank','width=1024,height=768');
         }
 
         /* ==================== 实例详情面板 ==================== */
