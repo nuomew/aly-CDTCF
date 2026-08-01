@@ -43,56 +43,174 @@
         .content{padding:24px 32px}
         .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:var(--transition);text-decoration:none}
         .btn-primary{background:var(--primary-grad);color:#fff;box-shadow:0 4px 15px rgba(102,126,234,0.35)}.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(102,126,234,0.45)}
-        .btn-secondary{background:linear-gradient(135deg,#64748b 0%,#475569 100%);color:#fff}.btn-secondary:hover{transform:translateY(-2px);box-shadow:0 4px 15px rgba(100,116,139,0.35)}
-        .btn-info{background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);color:#fff}.btn-info:hover{transform:translateY(-2px);box-shadow:0 4px 15px rgba(79,172,254,0.35)}
-        .btn-success{background:linear-gradient(135deg,#10b981 0%,#059669 100%);color:#fff}.btn-success:hover{transform:translateY(-2px);box-shadow:0 4px 15px rgba(16,185,129,0.35)}
-        .btn-danger{background:linear-gradient(135deg,#ef4444 0%,#dc2626 100%);color:#fff}.btn-danger:hover{transform:translateY(-2px);box-shadow:0 4px 15px rgba(239,68,68,0.35)}
-        .btn-warning{background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);color:#fff}.btn-warning:hover{transform:translateY(-2px);box-shadow:0 4px 15px rgba(245,158,11,0.35)}
-        .btn-outline{background:transparent;border:1px solid var(--border);color:var(--text-secondary)}.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
-        .btn-sm{padding:8px 16px;font-size:12px;border-radius:8px}
         .card{background:var(--card-bg);border-radius:var(--card-radius);box-shadow:var(--card-shadow);margin-bottom:24px;overflow:hidden;border:1px solid rgba(255,255,255,0.8);transition:var(--transition);animation:fadeInUp 0.5s ease-out 0.5s both}
-        .card:hover{transform:translateY(-8px);box-shadow:var(--card-shadow-hover)}
-        .card-header{padding:20px 24px;border-bottom:1px solid rgba(0,0,0,0.06);background:linear-gradient(180deg,#fff 0%,#f9fafb 100%);display:flex;align-items:center;justify-content:space-between}
+        .card-header{padding:20px 24px;border-bottom:1px solid rgba(0,0,0,0.06);background:linear-gradient(180deg,#fff 0%,#f9fafb 100%);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
         .card-header h3{font-size:16px;font-weight:700;display:flex;align-items:center;gap:10px}
         .card-header h3::before{content:'';width:4px;height:20px;background:var(--primary-grad);border-radius:2px}
+        .instance-count{font-size:13px;color:var(--text-secondary)}
         /* 入场动画 */
         @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-        .table-wrap{overflow-x:auto}
-        table{width:100%;border-collapse:collapse}
-        th{background:linear-gradient(180deg,#f9fafb 0%,#f3f4f6 100%);padding:12px 20px;text-align:left;font-weight:600;font-size:12px;color:var(--text-secondary);border-bottom:1px solid rgba(0,0,0,0.06);white-space:nowrap;text-transform:uppercase;letter-spacing:0.5px}
-        td{padding:14px 20px;border-bottom:1px solid rgba(0,0,0,0.04);font-size:14px}
-        tbody tr{transition:var(--transition)}
-        tr:nth-child(even){background:#fafbfc}tbody tr:hover,tr:hover{background:rgba(102,126,234,0.04)}
         .badge{display:inline-flex;align-items:center;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:0.3px}
         .badge-success{background:linear-gradient(135deg,rgba(16,185,129,0.1),rgba(5,150,105,0.1));border:1px solid rgba(16,185,129,0.2);color:#059669}
         .badge-danger{background:linear-gradient(135deg,rgba(239,68,68,0.1),rgba(220,38,38,0.1));border:1px solid rgba(239,68,68,0.2);color:#dc2626}
         .badge-warning{background:linear-gradient(135deg,rgba(245,158,11,0.1),rgba(217,119,6,0.1));border:1px solid rgba(245,158,11,0.2);color:#d97706}
         .badge-info{background:linear-gradient(135deg,rgba(59,130,246,0.1),rgba(37,99,235,0.1));border:1px solid rgba(59,130,246,0.2);color:#2563eb}
-        .action-btns{display:flex;gap:6px;flex-wrap:wrap}
         /* 弹窗 */
         .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center}
         .modal-overlay.show{display:flex}
         .modal{background:var(--card-bg);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.3);width:600px;max-width:90vw;max-height:90vh;overflow-y:auto}
-        .modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+        .modal-lg{width:960px}
+        .modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card-bg);z-index:1;border-radius:16px 16px 0 0}
         .modal-header h3{font-size:16px;font-weight:700}
         .modal-close{width:32px;height:32px;border:none;background:transparent;font-size:20px;cursor:pointer;color:var(--text-secondary);border-radius:6px;display:flex;align-items:center;justify-content:center}
         .modal-close:hover{background:#f3f4f6}
         .modal-body{padding:24px}
-        /* 详情网格 */
-        .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-        .detail-item{padding:12px 16px;background:linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%);border-radius:12px;border:1px solid rgba(0,0,0,0.04)}
-        .detail-label{font-size:12px;color:var(--text-secondary);margin-bottom:4px}
-        .detail-value{font-size:14px;font-weight:600}
-        .detail-item.full{grid-column:1/-1}
-        .empty-msg{padding:40px;text-align:center;color:var(--text-secondary)}
-        .toast{position:fixed;top:24px;right:24px;padding:14px 20px;border-radius:10px;color:#fff;font-size:14px;font-weight:500;z-index:9999;transform:translateX(120%);transition:transform 0.3s;max-width:360px}
+        .toast{position:fixed;top:24px;right:24px;padding:14px 20px;border-radius:10px;color:#fff;font-size:14px;font-weight:500;z-index:99999;transform:translateX(120%);transition:transform 0.3s;max-width:360px}
         .toast.show{transform:translateX(0)}.toast-success{background:var(--success)}.toast-error{background:var(--danger)}.toast-info{background:var(--primary)}
+
+        /* ==================== 服务器卡片网格 ==================== */
+        .server-grid{display:flex;flex-wrap:wrap;gap:20px;padding:24px}
+        .server-card{background:#fff;border-radius:var(--card-radius);box-shadow:var(--card-shadow);width:calc(50% - 10px);min-width:400px;overflow:hidden;border:1px solid rgba(0,0,0,0.05);transition:all 0.3s;animation:fadeInUp 0.5s ease-out both}
+        .server-card:hover{transform:translateY(-4px);box-shadow:var(--card-shadow-hover)}
+        .server-card-header{padding:20px 24px;display:flex;align-items:center;gap:16px;border-bottom:1px solid rgba(0,0,0,0.05)}
+        .server-os-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+        .server-os-icon.linux{background:linear-gradient(135deg,#f093fb,#f5576c)}
+        .server-os-icon.windows{background:linear-gradient(135deg,#4facfe,#00f2fe)}
+        .server-os-icon.unknown{background:linear-gradient(135deg,#a1a1aa,#71717a)}
+        .server-card-title{flex:1;min-width:0}
+        .server-card-title h4{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .server-status{display:inline-flex;align-items:center;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;margin-top:4px}
+        .server-status.running{background:rgba(16,185,129,0.1);color:#059669}
+        .server-status.stopped{background:rgba(239,68,68,0.1);color:#dc2626}
+        .server-status.starting,.server-status.stopping,.server-status.rebooting{background:rgba(59,130,246,0.1);color:#2563eb}
+        .server-status.pending{background:rgba(245,158,11,0.1);color:#d97706}
+        .server-card-body{padding:16px 24px}
+        .server-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .server-info-item{display:flex;flex-direction:column;gap:2px;min-width:0}
+        .server-info-item.full{grid-column:1/-1}
+        .server-info-label{color:var(--text-secondary);font-size:12px}
+        .server-info-value{font-weight:600;font-size:13px;word-break:break-all}
+        .server-info-value.expiring{color:#dc2626;font-weight:700}
+        .server-card-footer{padding:16px 24px;display:flex;gap:8px;border-top:1px solid rgba(0,0,0,0.05);flex-wrap:wrap}
+        .server-btn{padding:8px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s}
+        .server-btn.start{background:linear-gradient(135deg,#10b981,#059669);color:#fff}
+        .server-btn.stop{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff}
+        .server-btn.reboot{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff}
+        .server-btn.detail{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+        .server-btn.reinstall{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff}
+        .server-btn.vnc{background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff}
+        .server-btn:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.2)}
+        .server-btn:disabled{opacity:0.45;cursor:not-allowed;transform:none;box-shadow:none}
+
+        /* ==================== 空状态 ==================== */
+        .empty-state{text-align:center;padding:60px 20px;color:var(--text-secondary)}
+        .empty-state-icon{font-size:48px;margin-bottom:16px}
+        .empty-state p{margin:4px 0}
+
+        /* ==================== 确认操作弹窗 ==================== */
+        .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000}
+        .confirm-dialog{background:#fff;border-radius:16px;padding:24px;width:400px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:fadeInUp 0.3s ease}
+        .confirm-title{font-size:18px;font-weight:700;margin-bottom:12px}
+        .confirm-message{font-size:14px;color:var(--text-secondary);margin-bottom:20px;line-height:1.6}
+        .confirm-actions{display:flex;justify-content:flex-end;gap:12px}
+        .confirm-btn{padding:10px 24px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s}
+        .confirm-btn.cancel{background:#f3f4f6;color:var(--text-secondary)}
+        .confirm-btn.cancel:hover{background:#e5e7eb}
+        .confirm-btn.confirm{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+        .confirm-btn.confirm.danger{background:linear-gradient(135deg,#ef4444,#dc2626)}
+        .confirm-btn.confirm.warn{background:linear-gradient(135deg,#f59e0b,#d97706)}
+
+        /* ==================== 详情面板 ==================== */
+        .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+        .detail-panel{background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);overflow:hidden;border:1px solid rgba(0,0,0,0.04)}
+        .detail-panel-header{padding:16px 24px;border-bottom:1px solid rgba(0,0,0,0.05);background:linear-gradient(180deg,#fff 0%,#f9fafb 100%)}
+        .detail-panel-header h3{font-size:15px;font-weight:700;display:flex;align-items:center;gap:10px}
+        .detail-panel-header h3::before{content:'';width:4px;height:16px;background:var(--primary-grad);border-radius:2px}
+        .detail-panel-body{padding:12px 24px 20px}
+        .detail-info-row{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.03)}
+        .detail-info-row:last-child{border-bottom:none}
+        .detail-info-label{color:var(--text-secondary);font-size:13px;flex-shrink:0}
+        .detail-info-value{font-weight:600;font-size:13px;text-align:right;word-break:break-all;max-width:65%}
+        .detail-info-value.expiring{color:#dc2626}
+        /* 磁盘信息表格 */
+        .disk-table{width:100%;border-collapse:collapse}
+        .disk-table th{text-align:left;padding:10px 12px;font-size:12px;color:var(--text-secondary);font-weight:600;border-bottom:1px solid rgba(0,0,0,0.05);white-space:nowrap}
+        .disk-table td{padding:10px 12px;font-size:13px;color:var(--text-primary);border-bottom:1px solid rgba(0,0,0,0.03)}
+        .disk-table tr:last-child td{border-bottom:none}
+        .disk-empty{text-align:center;color:var(--text-secondary);padding:20px}
+
+        /* ==================== 重装系统弹窗 ==================== */
+        .reinstall-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:998;display:flex;align-items:center;justify-content:center}
+        .reinstall-dialog{background:#fff;border-radius:16px;max-width:680px;width:95%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+        .reinstall-dialog-header{padding:20px 24px;border-bottom:1px solid rgba(0,0,0,0.05);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;border-radius:16px 16px 0 0;z-index:1}
+        .reinstall-dialog-title{font-size:18px;font-weight:700}
+        .reinstall-dialog-close{width:32px;height:32px;border-radius:8px;border:none;background:#f3f4f6;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--text-secondary)}
+        .reinstall-dialog-close:hover{background:#e5e7eb}
+        .reinstall-dialog-body{padding:24px}
+        .reinstall-warning{background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:13px;color:#92400e;line-height:1.6}
+        .reinstall-form-group{margin-bottom:18px}
+        .reinstall-form-label{display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px}
+        .reinstall-form-label .required{color:var(--danger);margin-left:2px}
+        .reinstall-form-input{width:100%;padding:10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;color:var(--text-primary);transition:border-color 0.2s}
+        .reinstall-form-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(102,126,234,0.1)}
+        .reinstall-form-select{width:100%;padding:10px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;color:var(--text-primary);background:#fff;cursor:pointer}
+        .reinstall-form-select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(102,126,234,0.1)}
+        .reinstall-tabs{display:flex;gap:4px;margin-bottom:14px;background:#f3f4f6;border-radius:10px;padding:4px}
+        .reinstall-tab{flex:1;padding:8px 12px;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:var(--text-secondary);transition:all 0.2s;text-align:center}
+        .reinstall-tab.active{background:#fff;color:var(--primary);box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+        .reinstall-tab:hover:not(.active){color:#374151}
+        .image-list{max-height:240px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:10px}
+        .image-list-loading{text-align:center;padding:40px;color:var(--text-secondary)}
+        .image-item{padding:12px 16px;border-bottom:1px solid rgba(0,0,0,0.04);cursor:pointer;transition:background 0.15s;display:flex;justify-content:space-between;align-items:center;gap:12px}
+        .image-item:hover{background:rgba(102,126,234,0.04)}
+        .image-item.selected{background:rgba(102,126,234,0.08);border-left:3px solid var(--primary)}
+        .image-item:last-child{border-bottom:none}
+        .image-item-info{flex:1;min-width:0}
+        .image-item-name{font-size:13px;font-weight:600;color:var(--text-primary)}
+        .image-item-meta{font-size:11px;color:#9ca3af;margin-top:2px}
+        .image-item-id{font-size:11px;color:var(--primary);font-weight:600;background:rgba(102,126,234,0.08);padding:2px 8px;border-radius:4px;flex-shrink:0}
+        .image-search{width:100%;padding:8px 14px;border:1px solid #d1d5db;border-radius:8px;font-size:13px;margin-bottom:10px}
+        .image-search:focus{outline:none;border-color:var(--primary)}
+        .reinstall-dialog-footer{padding:16px 24px;border-top:1px solid rgba(0,0,0,0.05);display:flex;justify-content:flex-end;gap:12px;position:sticky;bottom:0;background:#fff;border-radius:0 0 16px 16px}
+        .reinstall-submit-btn{padding:10px 24px;border-radius:10px;font-size:14px;font-weight:600;border:none;cursor:pointer;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;transition:all 0.2s}
+        .reinstall-submit-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(139,92,246,0.3)}
+        .reinstall-submit-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none}
+        .reinstall-cancel-btn{padding:10px 24px;border-radius:10px;font-size:14px;font-weight:600;border:none;cursor:pointer;background:#f3f4f6;color:#374151;transition:all 0.2s}
+        .reinstall-cancel-btn:hover{background:#e5e7eb}
+        .auth-type-switch{display:flex;gap:16px;margin-bottom:10px}
+        .auth-type-option{display:flex;align-items:center;gap:6px;font-size:13px;color:#374151;cursor:pointer}
+        .auth-type-option input[type="radio"]{accent-color:var(--primary)}
+        .selected-image-info{margin-top:8px;font-size:12px;color:var(--primary);font-weight:600;min-height:16px}
+
+        /* ==================== 重装进度弹窗 ==================== */
+        .progress-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center}
+        .progress-dialog{background:#fff;border-radius:16px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+        .progress-dialog-header{padding:20px 24px;border-bottom:1px solid rgba(0,0,0,0.05)}
+        .progress-dialog-title{font-size:18px;font-weight:700}
+        .progress-dialog-body{padding:24px;text-align:center}
+        .progress-status-icon{font-size:48px;margin-bottom:16px}
+        .progress-message{font-size:14px;color:#374151;margin-bottom:24px;line-height:1.6}
+        .progress-steps{display:flex;justify-content:center;gap:16px;margin-bottom:16px}
+        .progress-step{display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0.4}
+        .progress-step.active,.progress-step.completed{opacity:1}
+        .progress-step.completed .step-icon{background:linear-gradient(135deg,#10b981,#059669);color:#fff}
+        .progress-step.active .step-icon{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;animation:stepPulse 1.5s infinite}
+        .step-icon{width:32px;height:32px;border-radius:50%;background:#e5e7eb;color:#6b7280;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+        .step-text{font-size:12px;color:var(--text-secondary)}
+        @keyframes stepPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+
+        @media(max-width:1024px){
+            .server-card{width:100%;min-width:0}
+        }
         @media(max-width:768px){
             .sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.sidebar-overlay.open{display:block}
             .menu-toggle{display:flex}.main-content{margin-left:0}.content{padding:16px}.topbar{padding:12px 16px 12px 56px}
             .topbar h1{font-size:18px}
+            .server-grid{padding:16px}
+            .server-info-grid{grid-template-columns:1fr}
             .detail-grid{grid-template-columns:1fr}
             .modal{margin:16px}
+            .disk-table{display:block;overflow-x:auto}
         }
     </style>
     <script src="/js/auth.js"></script>
@@ -120,25 +238,147 @@
             <div class="content">
                 <div class="card">
                     <div class="card-header">
-                        <h3>实例列表</h3>
+                        <h3>云服务器 ECS 实例列表 <span class="instance-count" id="instanceCount"></span></h3>
                         <button class="btn btn-primary" onclick="loadInstances()">刷新列表</button>
                     </div>
-                    <div class="table-wrap">
-                        <table>
-                            <thead><tr><th>名称</th><th>实例ID</th><th>状态</th><th>类型</th><th>IP地址</th><th>地域</th><th>配置名称</th><th>操作</th></tr></thead>
-                            <tbody id="instanceTable"><tr><td colspan="8" class="empty-msg">加载中...</td></tr></tbody>
-                        </table>
+                    <!-- 服务器卡片网格 -->
+                    <div class="server-grid" id="serverGrid">
+                        <div class="empty-state" style="width:100%"><div class="empty-state-icon">⏳</div><p>正在加载实例列表...</p></div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- 实例详情弹窗 -->
+    <!-- 实例详情弹窗（三面板：基本信息 / 网络信息 / 磁盘信息） -->
     <div class="modal-overlay" id="detailModal">
-        <div class="modal">
-            <div class="modal-header"><h3>实例详情</h3><button class="modal-close" onclick="closeDetailModal()">&times;</button></div>
+        <div class="modal modal-lg">
+            <div class="modal-header"><h3 id="detailTitle">实例详情</h3><button class="modal-close" onclick="closeDetailModal()">&times;</button></div>
             <div class="modal-body" id="detailBody">加载中...</div>
+        </div>
+    </div>
+
+    <!-- 确认操作弹窗 -->
+    <div id="confirmOverlay" class="confirm-overlay" style="display:none;">
+        <div class="confirm-dialog">
+            <div class="confirm-title" id="confirmTitle">确认操作</div>
+            <div class="confirm-message" id="confirmMessage">确定要执行此操作吗？</div>
+            <div class="confirm-actions">
+                <button class="confirm-btn cancel" onclick="hideConfirm()">取消</button>
+                <button class="confirm-btn confirm" id="confirmBtn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 重装系统弹窗 -->
+    <div id="reinstallOverlay" class="reinstall-overlay" style="display:none;">
+        <div class="reinstall-dialog">
+            <div class="reinstall-dialog-header">
+                <div class="reinstall-dialog-title">重装系统</div>
+                <button class="reinstall-dialog-close" onclick="closeReinstall()">✕</button>
+            </div>
+            <div class="reinstall-dialog-body">
+                <div class="reinstall-warning">
+                    ⚠️ <strong>危险操作：</strong>重装系统会格式化系统盘，系统盘上的所有数据将被清除且不可恢复！请确保已备份重要数据。
+                </div>
+
+                <!-- 镜像类型标签页 -->
+                <div class="reinstall-form-group">
+                    <label class="reinstall-form-label">镜像类型</label>
+                    <div class="reinstall-tabs" id="imageTypeTabs">
+                        <button class="reinstall-tab active" data-type="system" onclick="switchImageType('system', this)">公共镜像</button>
+                        <button class="reinstall-tab" data-type="self" onclick="switchImageType('self', this)">自定义镜像</button>
+                        <button class="reinstall-tab" data-type="others" onclick="switchImageType('others', this)">共享镜像</button>
+                    </div>
+                </div>
+
+                <!-- 操作系统筛选 -->
+                <div class="reinstall-form-group">
+                    <label class="reinstall-form-label">操作系统筛选</label>
+                    <select class="reinstall-form-select" id="reinstallOsFilter" onchange="loadImages()">
+                        <option value="">全部</option>
+                        <option value="linux">Linux</option>
+                        <option value="windows">Windows</option>
+                    </select>
+                </div>
+
+                <!-- 镜像搜索 -->
+                <div class="reinstall-form-group">
+                    <label class="reinstall-form-label">搜索镜像</label>
+                    <input type="text" class="image-search" id="imageSearchInput" placeholder="输入镜像名称或ID搜索..." oninput="filterImages()">
+                </div>
+
+                <!-- 镜像列表 -->
+                <div class="reinstall-form-group">
+                    <label class="reinstall-form-label">选择镜像 <span class="required">*</span></label>
+                    <div class="image-list" id="imageListContainer">
+                        <div class="image-list-loading">正在加载镜像列表...</div>
+                    </div>
+                    <div id="selectedImageInfo" class="selected-image-info"></div>
+                </div>
+
+                <!-- 登录方式切换 -->
+                <div class="reinstall-form-group">
+                    <label class="reinstall-form-label">登录方式 <span class="required">*</span></label>
+                    <div class="auth-type-switch">
+                        <label class="auth-type-option">
+                            <input type="radio" name="authType" value="password" checked onchange="switchAuthType('password')"> 密码登录
+                        </label>
+                        <label class="auth-type-option">
+                            <input type="radio" name="authType" value="keypair" onchange="switchAuthType('keypair')"> 密钥对登录
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 密码登录 -->
+                <div id="passwordAuthGroup">
+                    <div class="reinstall-form-group">
+                        <label class="reinstall-form-label">登录密码 <span class="required">*</span></label>
+                        <input type="password" class="reinstall-form-input" id="reinstallPassword" placeholder="8-30位，需包含大小写字母、数字和特殊符号" autocomplete="new-password">
+                    </div>
+                    <div class="reinstall-form-group">
+                        <label class="reinstall-form-label">确认密码 <span class="required">*</span></label>
+                        <input type="password" class="reinstall-form-input" id="reinstallPasswordConfirm" placeholder="再次输入密码" autocomplete="new-password">
+                    </div>
+                </div>
+
+                <!-- 密钥对登录 -->
+                <div id="keypairAuthGroup" style="display:none;">
+                    <div class="reinstall-form-group">
+                        <label class="reinstall-form-label">密钥对名称 <span class="required">*</span></label>
+                        <input type="text" class="reinstall-form-input" id="reinstallKeyPair" placeholder="输入已在阿里云控制台创建的密钥对名称">
+                    </div>
+                </div>
+
+                <!-- 系统盘大小（自定义/共享镜像时可扩容） -->
+                <div class="reinstall-form-group" id="diskSizeGroup" style="display:none;">
+                    <label class="reinstall-form-label">系统盘大小 (GB)</label>
+                    <input type="number" class="reinstall-form-input" id="reinstallDiskSize" placeholder="留空则保持原大小不变" min="20" max="500">
+                    <div style="font-size:11px;color:#9ca3af;margin-top:4px;">仅支持扩大系统盘容量，不能缩小。最小20GB</div>
+                </div>
+            </div>
+            <div class="reinstall-dialog-footer">
+                <button class="reinstall-cancel-btn" onclick="closeReinstall()">取消</button>
+                <button class="reinstall-submit-btn" id="reinstallSubmitBtn" onclick="submitReinstall()">确认重装</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 重装进度弹窗 -->
+    <div id="progressOverlay" class="progress-overlay" style="display:none;">
+        <div class="progress-dialog">
+            <div class="progress-dialog-header">
+                <div class="progress-dialog-title">重装系统进度</div>
+            </div>
+            <div class="progress-dialog-body">
+                <div class="progress-status-icon" id="progressStatusIcon">⏳</div>
+                <div class="progress-message" id="progressMessage">正在提交任务...</div>
+                <div class="progress-steps">
+                    <div class="progress-step" id="step1"><span class="step-icon">1</span><span class="step-text">停止实例</span></div>
+                    <div class="progress-step" id="step2"><span class="step-icon">2</span><span class="step-text">重装系统</span></div>
+                    <div class="progress-step" id="step3"><span class="step-icon">3</span><span class="step-text">自动开机</span></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -146,10 +386,24 @@
 
     <script>
         /**
-         * 服务器管理页面
-         * 功能：实例列表、开机/关机/重启/VNC/详情
+         * 服务器管理页面（PHP 原版风格）
+         * 功能：实例卡片列表、开机/关机/重启/VNC/详情面板/重装系统（自动停止→重装→开机全流程）
          */
-        var instancesData=[];
+        var instancesData = [];
+
+        /* 地域ID → 中文名称映射 */
+        var REGION_MAP = {
+            'cn-hangzhou':'华东1(杭州)','cn-shanghai':'华东2(上海)','cn-qingdao':'华北1(青岛)',
+            'cn-beijing':'华北2(北京)','cn-zhangjiakou':'华北3(张家口)','cn-huhehaote':'华北5(呼和浩特)',
+            'cn-wulanchabu':'华北6(乌兰察布)','cn-shenzhen':'华南1(深圳)','cn-heyuan':'华南2(河源)',
+            'cn-guangzhou':'华南3(广州)','cn-chengdu':'西南1(成都)','cn-nanjing':'华东5(南京)',
+            'cn-fuzhou':'华东6(福州)','cn-hongkong':'中国香港','ap-southeast-1':'新加坡',
+            'ap-southeast-2':'澳大利亚(悉尼)','ap-southeast-3':'马来西亚(吉隆坡)','ap-southeast-5':'印度尼西亚(雅加达)',
+            'ap-southeast-6':'菲律宾(马尼拉)','ap-southeast-7':'泰国(曼谷)','ap-northeast-1':'日本(东京)',
+            'ap-northeast-2':'韩国(首尔)','ap-south-1':'印度(孟买)','us-east-1':'美国(弗吉尼亚)',
+            'us-west-1':'美国(硅谷)','eu-west-1':'英国(伦敦)','eu-central-1':'德国(法兰克福)',
+            'me-east-1':'阿联酋(迪拜)','me-central-1':'沙特(利雅得)'
+        };
 
         (function(){
             // 检查登录状态
@@ -162,6 +416,8 @@
 
         /**
          * 显示Toast提示
+         * @param {string} msg - 提示内容
+         * @param {string} type - 类型：success/error/info
          */
         function showToast(msg,type){
             var t=document.getElementById('toast');t.textContent=msg;
@@ -170,69 +426,182 @@
         }
 
         /**
-         * HTML转义
+         * HTML转义，防止XSS
+         * @param {string} s - 原始字符串
+         * @returns {string} 转义后的字符串
          */
         function esc(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
         /**
-         * 获取状态徽章HTML
-         * @param {string} status - 实例状态
-         * @returns {string} 徽章HTML
+         * 获取地域中文名
+         * @param {string} regionId - 地域ID
+         * @returns {string} 中文名或原ID
          */
-        function getStatusBadge(status){
-            var map={
-                'Running':['badge-success','运行中'],
-                'Stopped':['badge-danger','已停止'],
-                'Starting':['badge-warning','启动中'],
-                'Stopping':['badge-warning','停止中'],
-                'Pending':['badge-info','创建中'],
-                'Deleting':['badge-warning','删除中']
-            };
-            var m=map[status]||['badge-warning',status||'未知'];
-            return'<span class="badge '+m[0]+'">'+m[1]+'</span>';
+        function regionName(regionId){return REGION_MAP[regionId]||regionId||'-'}
+
+        /**
+         * 判断操作系统类型
+         * @param {string} osName - 操作系统名称
+         * @returns {string} linux/windows/unknown
+         */
+        function getOsType(osName){
+            if(!osName)return'unknown';
+            var s=osName.toLowerCase();
+            if(s.indexOf('windows')!==-1)return'windows';
+            if(s.indexOf('linux')!==-1||s.indexOf('centos')!==-1||s.indexOf('ubuntu')!==-1||s.indexOf('debian')!==-1||s.indexOf('aliyun')!==-1||s.indexOf('rocky')!==-1||s.indexOf('alma')!==-1)return'linux';
+            return'unknown';
         }
 
         /**
-         * 加载实例列表
+         * 获取OS图标
+         * @param {string} osType - 操作系统类型
+         * @returns {string} 图标字符
+         */
+        function osIcon(osType){return osType==='linux'?'🐧':(osType==='windows'?'🪟':'💻')}
+
+        /**
+         * 判断实例是否即将到期（7天内）
+         * @param {string} expiredTime - 到期时间字符串
+         * @returns {boolean} 是否即将到期
+         */
+        function isExpiringSoon(expiredTime){
+            if(!expiredTime)return false;
+            var t=new Date(expiredTime.replace(' ','T')).getTime();
+            if(isNaN(t))return false;
+            var now=Date.now();
+            return t>now&&t<now+7*24*3600*1000;
+        }
+
+        /**
+         * 加载实例列表并渲染卡片
          */
         function loadInstances(){
-            document.getElementById('instanceTable').innerHTML='<tr><td colspan="8" class="empty-msg">正在加载...</td></tr>';
+            var grid=document.getElementById('serverGrid');
+            grid.innerHTML='<div class="empty-state" style="width:100%"><div class="empty-state-icon">⏳</div><p>正在加载实例列表...</p></div>';
+            document.getElementById('instanceCount').textContent='';
+
             authFetch('/api/ecs/instances')
                 .then(function(resp){
-                    if(!resp.success){document.getElementById('instanceTable').innerHTML='<tr><td colspan="8" class="empty-msg" style="color:var(--danger)">'+esc(resp.message||'加载失败')+'</td></tr>';return}
+                    if(!resp.success){
+                        grid.innerHTML='<div class="empty-state" style="width:100%"><div class="empty-state-icon">❌</div><p>'+esc(resp.message||'加载失败')+'</p></div>';
+                        return;
+                    }
                     var list=resp.data||[];
                     instancesData=list;
-                    var tbody=document.getElementById('instanceTable');
+                    // 显示实例总数
+                    document.getElementById('instanceCount').textContent='共 '+list.length+' 台实例';
+
                     if(!list.length){
-                        tbody.innerHTML='<tr><td colspan="8" class="empty-msg">暂无实例</td></tr>';return;
+                        grid.innerHTML='<div class="empty-state" style="width:100%">'
+                            +'<div class="empty-state-icon">🖥️</div>'
+                            +'<p>暂无ECS实例数据</p>'
+                            +'<p style="font-size:13px;margin-top:8px;">请确保已添加阿里云AccessKey配置且配置了正确的地域</p>'
+                            +'</div>';
+                        return;
                     }
-                    var html='';
-                    list.forEach(function(inst,i){
-                        html+='<tr>'
-                            +'<td><strong>'+esc(inst.instanceName||'未命名')+'</strong></td>'
-                            +'<td style="font-family:monospace;font-size:12px">'+esc(inst.instanceId)+'</td>'
-                            +'<td>'+getStatusBadge(inst.status)+'</td>'
-                            +'<td>'+esc(inst.instanceTypeText||inst.instanceType)+'</td>'
-                            +'<td>'+(inst.publicIp||inst.privateIp||'-')+'</td>'
-                            +'<td>'+esc(inst.regionId)+'</td>'
-                            +'<td>'+esc(inst.configName)+'</td>'
-                            +'<td><div class="action-btns">'
-                            +(inst.status==='Stopped'?'<button class="btn btn-success btn-sm" onclick="doAction('+i+',\'start\')">开机</button>':'')
-                            +(inst.status==='Running'?'<button class="btn btn-danger btn-sm" onclick="doAction('+i+',\'stop\')">关机</button>':'')
-                            +(inst.status==='Running'?'<button class="btn btn-warning btn-sm" onclick="doAction('+i+',\'reboot\')">重启</button>':'')
-                            +'<button class="btn btn-outline btn-sm" onclick="openVnc('+i+')">VNC</button>'
-                            +'<button class="btn btn-outline btn-sm" onclick="showDetail('+i+')">详情</button>'
-                            +'</div></td></tr>';
-                    });
-                    tbody.innerHTML=html;
+                    renderServerCards(list);
                 })
                 .catch(function(){
-                    document.getElementById('instanceTable').innerHTML='<tr><td colspan="8" class="empty-msg" style="color:var(--danger)">加载失败</td></tr>';
+                    grid.innerHTML='<div class="empty-state" style="width:100%"><div class="empty-state-icon">❌</div><p>加载失败，请稍后重试</p></div>';
                 });
         }
 
         /**
-         * 执行实例操作（开机/关机/重启）
+         * 渲染服务器卡片列表
+         * @param {Array} list - 实例数据数组
+         */
+        function renderServerCards(list){
+            var grid=document.getElementById('serverGrid');
+            var html='';
+            list.forEach(function(inst,i){
+                var status=inst.status||'';
+                var statusClass=status.toLowerCase();
+                var osType=getOsType(inst.osName);
+                var expiring=isExpiringSoon(inst.expiredTime);
+                var publicIp=inst.publicIp||'';
+                var privateIp=inst.privateIp||'';
+
+                html+='<div class="server-card">'
+                    // 卡片头部：OS图标 + 名称 + 状态
+                    +'<div class="server-card-header">'
+                    +'<div class="server-os-icon '+osType+'">'+osIcon(osType)+'</div>'
+                    +'<div class="server-card-title">'
+                    +'<h4 title="'+esc(inst.instanceName||inst.instanceId)+'">'+esc(inst.instanceName||inst.instanceId)+'</h4>'
+                    +'<span class="server-status '+statusClass+'">'+esc(inst.statusText||status)+'</span>'
+                    +'</div></div>'
+                    // 卡片主体：信息网格
+                    +'<div class="server-card-body"><div class="server-info-grid">'
+                    +'<div class="server-info-item"><span class="server-info-label">实例ID</span><span class="server-info-value" style="font-size:11px">'+esc(inst.instanceId)+'</span></div>'
+                    +'<div class="server-info-item"><span class="server-info-label">地域</span><span class="server-info-value">'+esc(regionName(inst.regionId))+'</span></div>'
+                    +'<div class="server-info-item"><span class="server-info-label">公网IP</span><span class="server-info-value">'+(publicIp?esc(publicIp):'-')+'</span></div>'
+                    +'<div class="server-info-item"><span class="server-info-label">内网IP</span><span class="server-info-value">'+(privateIp?esc(privateIp):'-')+'</span></div>'
+                    +'<div class="server-info-item"><span class="server-info-label">规格</span><span class="server-info-value">'+esc(inst.instanceType||'-')+'</span></div>'
+                    +'<div class="server-info-item"><span class="server-info-label">付费类型</span><span class="server-info-value">'+esc(inst.chargeTypeText||inst.chargeType||'-')+'</span></div>';
+
+                // 到期时间（包年包月实例显示，7天内到期红色高亮+警告图标）
+                if(inst.expiredTime){
+                    html+='<div class="server-info-item full"><span class="server-info-label">到期时间</span>'
+                        +'<span class="server-info-value'+(expiring?' expiring':'')+'">'+esc(inst.expiredTime)+(expiring?' ⚠️ 即将到期':'')+'</span></div>';
+                }
+
+                html+='</div></div>'
+                    // 卡片底部：操作按钮
+                    +'<div class="server-card-footer">'
+                    +'<button class="server-btn start" onclick="doAction('+i+',\'start\')"'+(status==='Stopped'?'':' disabled')+'>▶ 开机</button>'
+                    +'<button class="server-btn stop" onclick="confirmAction('+i+',\'stop\')"'+(status==='Running'?'':' disabled')+'>■ 关机</button>'
+                    +'<button class="server-btn reboot" onclick="confirmAction('+i+',\'reboot\')"'+(status==='Running'?'':' disabled')+'>↻ 重启</button>'
+                    +'<button class="server-btn detail" onclick="showDetail('+i+')">详情</button>'
+                    +'<button class="server-btn reinstall" onclick="openReinstall('+i+')">⟳ 重装</button>'
+                    +'<button class="server-btn vnc" onclick="openVnc('+i+')">🖥 VNC</button>'
+                    +'</div></div>';
+            });
+            grid.innerHTML=html;
+        }
+
+        /* ==================== 确认操作弹窗 ==================== */
+        var pendingAction=null;
+
+        /**
+         * 弹出确认框（关机/重启等危险操作）
+         * @param {number} index - 实例索引
+         * @param {string} action - 操作类型：stop/reboot
+         */
+        function confirmAction(index,action){
+            var inst=instancesData[index];
+            if(!inst)return;
+            pendingAction={index:index,action:action};
+
+            var titles={stop:'确认关机',reboot:'确认重启'};
+            var messages={
+                stop:'确定要关机实例 '+inst.instanceId+' 吗？请确保已保存重要数据。',
+                reboot:'确定要重启实例 '+inst.instanceId+' 吗？实例将短暂不可用。'
+            };
+            document.getElementById('confirmTitle').textContent=titles[action]||'确认操作';
+            document.getElementById('confirmMessage').textContent=messages[action]||'确定要执行此操作吗？';
+
+            var btn=document.getElementById('confirmBtn');
+            btn.className='confirm-btn confirm '+(action==='stop'?'danger':'warn');
+            btn.onclick=executeConfirm;
+
+            document.getElementById('confirmOverlay').style.display='flex';
+        }
+
+        /** 隐藏确认弹窗 */
+        function hideConfirm(){
+            document.getElementById('confirmOverlay').style.display='none';
+            pendingAction=null;
+        }
+
+        /** 执行确认后的操作 */
+        function executeConfirm(){
+            if(!pendingAction)return;
+            var p=pendingAction;
+            hideConfirm();
+            doAction(p.index,p.action);
+        }
+
+        /**
+         * 执行实例操作（开机直接执行，关机/重启经确认弹窗）
          * @param {number} index - 实例索引
          * @param {string} action - 操作类型：start/stop/reboot
          */
@@ -240,10 +609,9 @@
             var inst=instancesData[index];
             if(!inst)return;
             var actionNames={start:'开机',stop:'关机',reboot:'重启'};
-            if(!confirm('确定要'+actionNames[action]+'实例 '+inst.instanceId+' 吗？'))return;
 
             showToast('正在发送'+actionNames[action]+'指令...','info');
-            authFetchJSON('/api/ecs/instance/action', 'POST', {config_id:inst.configId,instance_id:inst.instanceId,action:action})
+            authFetchJSON('/api/ecs/instance/action','POST',{config_id:inst.configId,instance_id:inst.instanceId,action:action})
             .then(function(d){
                 if(d.success){showToast(d.message||'操作成功','success');setTimeout(loadInstances,3000)}
                 else showToast(d.message||'操作失败','error')
@@ -252,56 +620,479 @@
         }
 
         /**
-         * 打开VNC连接
+         * 打开VNC连接（阿里云控制台VNC页面）
          * @param {number} index - 实例索引
          */
         function openVnc(index){
             var inst=instancesData[index];
             if(!inst)return;
-            // 直接打开阿里云控制台VNC页面
             var url='https://ecs.console.aliyun.com/vnc/'+inst.instanceId+'?regionId='+inst.regionId;
             window.open(url,'_blank');
         }
 
+        /* ==================== 实例详情面板 ==================== */
+
         /**
-         * 显示实例详情
+         * 显示实例详情（三面板：基本信息/网络信息/磁盘信息）
          * @param {number} index - 实例索引
          */
         function showDetail(index){
             var inst=instancesData[index];
             if(!inst)return;
             var body=document.getElementById('detailBody');
-            body.innerHTML='加载中...';
+            document.getElementById('detailTitle').textContent='实例详情 - '+(inst.instanceName||inst.instanceId);
+            body.innerHTML='<div class="empty-state"><div class="empty-state-icon">⏳</div><p>正在加载实例详情...</p></div>';
             document.getElementById('detailModal').classList.add('show');
 
-            authFetch('/api/ecs/instance/detail?config_id='+inst.configId+'&instance_id='+inst.instanceId)
-                .then(function(resp){
-                    if(!resp.success){body.innerHTML='<p style="color:var(--danger)">'+esc(resp.message||'加载失败')+'</p>';return}
-                    var d=resp.data||{};
-                    body.innerHTML='<div class="detail-grid">'
-                        +'<div class="detail-item"><div class="detail-label">实例名称</div><div class="detail-value">'+esc(d.instanceName)+'</div></div>'
-                        +'<div class="detail-item"><div class="detail-label">实例ID</div><div class="detail-value" style="font-family:monospace;font-size:12px">'+esc(d.instanceId)+'</div></div>'
-                        +'<div class="detail-item"><div class="detail-label">状态</div><div class="detail-value">'+getStatusBadge(d.status)+'</div></div>'
-                        +'<div class="detail-item"><div class="detail-label">实例类型</div><div class="detail-value">'+esc(d.instanceType)+'</div></div>'
-                        +'<div class="detail-item"><div class="detail-label">操作系统</div><div class="detail-value">'+esc(d.osName)+'</div></div>'
-                        +'<div class="detail-item"><div class="detail-label">地域</div><div class="detail-value">'+esc(d.regionId)+'</div></div>'
-                        +'<div class="detail-item"><div class="detail-label">公网IP</div><div class="detail-value">'+(d.publicIp&&d.publicIp.length?d.publicIp.join(', '):'无')+'</div></div>'
-                        +'<div class="detail-item"><div class="detail-label">内网IP</div><div class="detail-value">'+(d.innerIp&&d.innerIp.length?d.innerIp.join(', '):'无')+'</div></div>'
-                        +'<div class="detail-item"><div class="detail-label">CPU</div><div class="detail-value">'+d.cpu+'核</div></div>'
-                        +'<div class="detail-item"><div class="detail-label">内存</div><div class="detail-value">'+(d.memory/1024).toFixed(0)+'GB</div></div>'
-                        +'<div class="detail-item"><div class="detail-label">带宽</div><div class="detail-value">'+d.internetMaxBandwidthOut+'Mbps</div></div>'
-                        +'<div class="detail-item"><div class="detail-label">计费方式</div><div class="detail-value">'+esc(d.internetChargeType)+'</div></div>'
-                        +'<div class="detail-item"><div class="detail-label">创建时间</div><div class="detail-value">'+esc(d.creationTime)+'</div></div>'
-                        +'<div class="detail-item"><div class="detail-label">到期时间</div><div class="detail-value">'+esc(d.expiredTime)+'</div></div>'
-                        +'<div class="detail-item full"><div class="detail-label">VPC ID</div><div class="detail-value" style="font-family:monospace;font-size:12px">'+esc(d.vpcId)+'</div></div>'
-                        +'<div class="detail-item full"><div class="detail-label">安全组</div><div class="detail-value" style="font-family:monospace;font-size:12px">'+(d.securityGroupIds?d.securityGroupIds.join(', '):'无')+'</div></div>'
-                        +'</div>';
-                })
-                .catch(function(){body.innerHTML='<p style="color:var(--danger)">加载失败</p>'});
+            // 并行请求详情与磁盘信息
+            var detailReq=authFetch('/api/ecs/instance/detail?config_id='+inst.configId+'&instance_id='+inst.instanceId);
+            var diskReq=authFetch('/api/ecs/instance/disks?config_id='+inst.configId+'&instance_id='+inst.instanceId);
+
+            Promise.all([detailReq,diskReq]).then(function(results){
+                var detailResp=results[0],diskResp=results[1];
+                if(!detailResp.success){
+                    body.innerHTML='<div class="empty-state"><div class="empty-state-icon">❌</div><p>'+esc(detailResp.message||'加载失败')+'</p></div>';
+                    return;
+                }
+                var d=detailResp.data||{};
+                var disks=(diskResp.success&&diskResp.data)?diskResp.data:[];
+                body.innerHTML=buildDetailHtml(d,disks);
+            }).catch(function(){
+                body.innerHTML='<div class="empty-state"><div class="empty-state-icon">❌</div><p>加载失败，请稍后重试</p></div>';
+            });
+        }
+
+        /**
+         * 构建详情面板HTML
+         * @param {object} d - 实例详情数据
+         * @param {Array} disks - 磁盘列表
+         * @returns {string} 详情HTML
+         */
+        function buildDetailHtml(d,disks){
+            var expiring=isExpiringSoon(d.expiredTime);
+            var publicIp=(d.publicIp&&d.publicIp.length)?d.publicIp.join(', '):'-';
+            var innerIp=(d.innerIp&&d.innerIp.length)?d.innerIp.join(', '):'-';
+            var statusClass=(d.status||'').toLowerCase();
+
+            var html='<div class="detail-grid">'
+                // 基本信息面板
+                +'<div class="detail-panel"><div class="detail-panel-header"><h3>基本信息</h3></div><div class="detail-panel-body">'
+                +detailRow('实例状态','<span class="server-status '+statusClass+'">'+esc(d.statusText||d.status||'-')+'</span>')
+                +detailRow('实例规格',esc(d.instanceType||'-'))
+                +detailRow('CPU',(d.cpu||'-')+' 核')
+                +detailRow('内存',(d.memory?(d.memory/1024).toFixed(0):'-')+' GB')
+                +detailRow('操作系统',esc(d.osName||'-'))
+                +detailRow('付费类型',esc(formatCharge(d.internetChargeType)||'-'))
+                +detailRow('到期时间',d.expiredTime?('<span class="'+(expiring?'expiring':'')+'">'+esc(d.expiredTime)+(expiring?' ⚠️':'')+'</span>'):'-',expiring)
+                +detailRow('创建时间',esc(d.creationTime||'-'))
+                +'</div></div>'
+                // 网络信息面板
+                +'<div class="detail-panel"><div class="detail-panel-header"><h3>网络信息</h3></div><div class="detail-panel-body">'
+                +detailRow('公网IP',esc(publicIp))
+                +detailRow('内网IP',esc(innerIp))
+                +detailRow('VPC ID',esc(d.vpcId||'-'))
+                +detailRow('地域',esc(regionName(d.regionId)))
+                +detailRow('带宽',(d.internetMaxBandwidthOut||0)+' Mbps')
+                +'</div></div>'
+                // 磁盘信息面板（占两列）
+                +'<div class="detail-panel" style="grid-column:1/-1"><div class="detail-panel-header"><h3>磁盘信息</h3></div><div class="detail-panel-body">'
+                +buildDiskTable(disks)
+                +'</div></div>'
+                +'</div>';
+            return html;
+        }
+
+        /**
+         * 构建详情信息行
+         * @param {string} label - 标签
+         * @param {string} value - 值HTML
+         * @param {boolean} warn - 是否红色高亮
+         * @returns {string} 行HTML
+         */
+        function detailRow(label,value,warn){
+            return'<div class="detail-info-row"><span class="detail-info-label">'+label+'</span><span class="detail-info-value'+(warn?' expiring':'')+'">'+value+'</span></div>';
+        }
+
+        /**
+         * 格式化带宽计费方式
+         * @param {string} type - 计费类型
+         * @returns {string} 中文描述
+         */
+        function formatCharge(type){
+            var map={PrePaid:'包年包月',PostPaid:'按量付费',PayByBandwidth:'按固定带宽',PayByTraffic:'按使用流量'};
+            return map[type]||type;
+        }
+
+        /**
+         * 构建磁盘信息表格
+         * @param {Array} disks - 磁盘列表
+         * @returns {string} 表格HTML
+         */
+        function buildDiskTable(disks){
+            if(!disks.length){
+                return'<div class="disk-empty">暂无磁盘信息</div>';
+            }
+            var html='<table class="disk-table"><thead><tr><th>磁盘ID</th><th>名称</th><th>类型</th><th>大小</th><th>类别</th><th>状态</th></tr></thead><tbody>';
+            disks.forEach(function(disk){
+                html+='<tr>'
+                    +'<td style="font-family:monospace;font-size:12px">'+esc(disk.diskId)+'</td>'
+                    +'<td>'+esc(disk.diskName||'-')+'</td>'
+                    +'<td>'+esc(disk.typeText)+'</td>'
+                    +'<td>'+disk.size+' GB</td>'
+                    +'<td>'+esc(disk.categoryText)+'</td>'
+                    +'<td>'+esc(disk.statusText||disk.status||'-')+'</td>'
+                    +'</tr>';
+            });
+            html+='</tbody></table>';
+            return html;
         }
 
         /** 关闭详情弹窗 */
         function closeDetailModal(){document.getElementById('detailModal').classList.remove('show')}
+
+        /* ==================== 重装系统 ==================== */
+        var reinstallState={
+            instanceId:'',
+            configId:0,
+            osType:'',
+            currentImageType:'system',
+            allImages:[],
+            selectedImageId:'',
+            selectedImageName:''
+        };
+        var progressTimer=null;
+        var progressTaskData=null;
+
+        /**
+         * 打开重装系统弹窗
+         * @param {number} index - 实例索引
+         */
+        function openReinstall(index){
+            var inst=instancesData[index];
+            if(!inst)return;
+
+            reinstallState.instanceId=inst.instanceId;
+            reinstallState.configId=inst.configId;
+            reinstallState.osType=getOsType(inst.osName);
+            reinstallState.selectedImageId='';
+            reinstallState.selectedImageName='';
+            reinstallState.allImages=[];
+
+            // 重置表单
+            document.getElementById('selectedImageInfo').textContent='';
+            document.getElementById('reinstallPassword').value='';
+            document.getElementById('reinstallPasswordConfirm').value='';
+            document.getElementById('reinstallKeyPair').value='';
+            document.getElementById('reinstallDiskSize').value='';
+            document.getElementById('imageSearchInput').value='';
+            document.getElementById('reinstallOsFilter').value=reinstallState.osType==='linux'?'linux':(reinstallState.osType==='windows'?'windows':'');
+            // 默认选中密码登录
+            document.querySelector('input[name="authType"][value="password"]').checked=true;
+            switchAuthType('password');
+            // 默认选中公共镜像标签
+            var tabs=document.querySelectorAll('.reinstall-tab');
+            tabs.forEach(function(t){t.classList.remove('active')});
+            document.querySelector('.reinstall-tab[data-type="system"]').classList.add('active');
+            reinstallState.currentImageType='system';
+            document.getElementById('diskSizeGroup').style.display='none';
+
+            document.getElementById('reinstallOverlay').style.display='flex';
+            loadImages();
+        }
+
+        /** 关闭重装弹窗 */
+        function closeReinstall(){
+            document.getElementById('reinstallOverlay').style.display='none';
+        }
+
+        /**
+         * 切换镜像类型标签页
+         * @param {string} type - 镜像类型：system/self/others
+         * @param {Element} tabEl - 标签元素
+         */
+        function switchImageType(type,tabEl){
+            reinstallState.currentImageType=type;
+            var tabs=document.querySelectorAll('.reinstall-tab');
+            tabs.forEach(function(t){t.classList.remove('active')});
+            if(tabEl)tabEl.classList.add('active');
+
+            // 公共镜像不支持调整系统盘大小，其余类型显示扩容选项
+            var diskSizeGroup=document.getElementById('diskSizeGroup');
+            if(type==='system'){
+                diskSizeGroup.style.display='none';
+                document.getElementById('reinstallDiskSize').value='';
+            }else{
+                diskSizeGroup.style.display='block';
+            }
+            loadImages();
+        }
+
+        /**
+         * 加载镜像列表
+         */
+        function loadImages(){
+            var container=document.getElementById('imageListContainer');
+            container.innerHTML='<div class="image-list-loading">⏳ 正在加载镜像列表...</div>';
+            reinstallState.selectedImageId='';
+            reinstallState.selectedImageName='';
+            document.getElementById('selectedImageInfo').textContent='';
+
+            var ostype=document.getElementById('reinstallOsFilter').value;
+            var url='/api/ecs/images?config_id='+reinstallState.configId
+                +'&image_owner_alias='+reinstallState.currentImageType
+                +'&ostype='+encodeURIComponent(ostype);
+
+            authFetch(url).then(function(resp){
+                if(resp.success){
+                    reinstallState.allImages=resp.data||[];
+                    renderImageList(reinstallState.allImages);
+                }else{
+                    container.innerHTML='<div class="image-list-loading" style="color:var(--danger)">❌ '+esc(resp.message||'加载失败')+'</div>';
+                }
+            }).catch(function(){
+                container.innerHTML='<div class="image-list-loading" style="color:var(--danger)">❌ 请求失败，请稍后重试</div>';
+            });
+        }
+
+        /**
+         * 渲染镜像列表
+         * @param {Array} images - 镜像数组
+         */
+        function renderImageList(images){
+            var container=document.getElementById('imageListContainer');
+            if(!images||!images.length){
+                container.innerHTML='<div class="image-list-loading">📭 暂无可用镜像</div>';
+                return;
+            }
+            var html='';
+            images.forEach(function(img){
+                var isSelected=img.imageId===reinstallState.selectedImageId;
+                var icon=img.osType==='windows'?'🪟':'🐧';
+                var meta=[];
+                if(img.architecture)meta.push(img.architecture);
+                if(img.imageVersion)meta.push(img.imageVersion);
+                if(img.size)meta.push(img.size+'GB');
+
+                html+='<div class="image-item'+(isSelected?' selected':'')+'" onclick="selectImage(\''+img.imageId+'\',\''+esc(img.osName).replace(/'/g,"\\'")+'\')">'
+                    +'<div class="image-item-info">'
+                    +'<div class="image-item-name">'+icon+' '+esc(img.osName||img.imageId)+'</div>'
+                    +'<div class="image-item-meta">'+(meta.length?esc(meta.join(' · ')):esc(img.imageId))+'</div>'
+                    +'</div>'
+                    +'<div class="image-item-id">'+esc(img.imageId)+'</div>'
+                    +'</div>';
+            });
+            container.innerHTML=html;
+        }
+
+        /**
+         * 选择镜像
+         * @param {string} imageId - 镜像ID
+         * @param {string} osName - 镜像名称
+         */
+        function selectImage(imageId,osName){
+            reinstallState.selectedImageId=imageId;
+            reinstallState.selectedImageName=osName;
+            document.getElementById('selectedImageInfo').textContent='✅ 已选择: '+osName+' ('+imageId+')';
+
+            // 高亮选中项
+            var items=document.querySelectorAll('.image-item');
+            items.forEach(function(item){
+                var idEl=item.querySelector('.image-item-id');
+                if(idEl&&idEl.textContent===imageId){
+                    item.classList.add('selected');
+                }else{
+                    item.classList.remove('selected');
+                }
+            });
+        }
+
+        /**
+         * 前端搜索过滤镜像
+         */
+        function filterImages(){
+            var keyword=document.getElementById('imageSearchInput').value.toLowerCase().trim();
+            if(!keyword){
+                renderImageList(reinstallState.allImages);
+                return;
+            }
+            var filtered=reinstallState.allImages.filter(function(img){
+                return(img.osName&&img.osName.toLowerCase().indexOf(keyword)!==-1)
+                    ||(img.imageId&&img.imageId.toLowerCase().indexOf(keyword)!==-1)
+                    ||(img.description&&img.description.toLowerCase().indexOf(keyword)!==-1);
+            });
+            renderImageList(filtered);
+        }
+
+        /**
+         * 切换登录方式（密码/密钥对）
+         * @param {string} type - password/keypair
+         */
+        function switchAuthType(type){
+            if(type==='password'){
+                document.getElementById('passwordAuthGroup').style.display='block';
+                document.getElementById('keypairAuthGroup').style.display='none';
+            }else{
+                document.getElementById('passwordAuthGroup').style.display='none';
+                document.getElementById('keypairAuthGroup').style.display='block';
+            }
+        }
+
+        /**
+         * 提交重装系统请求
+         * 校验：必须选择镜像、密码/密钥对二选一、密码一致性及长度校验
+         */
+        function submitReinstall(){
+            var imageId=reinstallState.selectedImageId;
+            if(!imageId){
+                showToast('请选择镜像','error');
+                return;
+            }
+
+            var authType=document.querySelector('input[name="authType"]:checked').value;
+            var password='',keyPairName='';
+
+            if(authType==='password'){
+                password=document.getElementById('reinstallPassword').value;
+                var confirmPassword=document.getElementById('reinstallPasswordConfirm').value;
+                if(!password){showToast('请输入登录密码','error');return}
+                if(password!==confirmPassword){showToast('两次输入的密码不一致','error');return}
+                if(password.length<8||password.length>30){showToast('密码长度需为8-30位','error');return}
+            }else{
+                keyPairName=document.getElementById('reinstallKeyPair').value.trim();
+                if(!keyPairName){showToast('请输入密钥对名称','error');return}
+            }
+
+            var diskSize=parseInt(document.getElementById('reinstallDiskSize').value)||0;
+
+            var submitBtn=document.getElementById('reinstallSubmitBtn');
+            submitBtn.disabled=true;
+            submitBtn.textContent='正在提交...';
+
+            var taskData={
+                config_id:reinstallState.configId,
+                instance_id:reinstallState.instanceId,
+                image_id:imageId,
+                password:password,
+                key_pair_name:keyPairName,
+                system_disk_size:diskSize
+            };
+
+            authFetchJSON('/api/ecs/instance/reinstall','POST',taskData)
+            .then(function(d){
+                submitBtn.disabled=false;
+                submitBtn.textContent='确认重装';
+                if(d.success){
+                    closeReinstall();
+                    showProgressDialog(d.message,d.data&&d.data.status?d.data.status:'reinstalling',taskData);
+                }else{
+                    showToast(d.message||'重装系统失败','error');
+                }
+            })
+            .catch(function(){
+                submitBtn.disabled=false;
+                submitBtn.textContent='确认重装';
+                showToast('请求失败，请稍后重试','error');
+            });
+        }
+
+        /* ==================== 重装进度弹窗 ==================== */
+
+        /**
+         * 显示重装进度弹窗并开始轮询
+         * @param {string} message - 初始提示信息
+         * @param {string} status - 当前阶段：stopping/reinstalling/starting/completed
+         * @param {object} taskData - 重装任务参数
+         */
+        function showProgressDialog(message,status,taskData){
+            progressTaskData=taskData;
+            updateProgressUI(message,status);
+            document.getElementById('progressOverlay').style.display='flex';
+            pollReinstallStatus(status);
+        }
+
+        /** 关闭重装进度弹窗并停止轮询 */
+        function closeProgressDialog(){
+            document.getElementById('progressOverlay').style.display='none';
+            if(progressTimer){clearTimeout(progressTimer);progressTimer=null}
+        }
+
+        /**
+         * 更新进度弹窗UI
+         * @param {string} message - 提示信息
+         * @param {string} status - 当前阶段
+         */
+        function updateProgressUI(message,status){
+            document.getElementById('progressMessage').textContent=message;
+
+            var iconMap={stopping:'🛑',reinstalling:'🔄',starting:'🚀',completed:'✅',error:'❌'};
+            document.getElementById('progressStatusIcon').textContent=iconMap[status]||'⏳';
+
+            var step1=document.getElementById('step1');
+            var step2=document.getElementById('step2');
+            var step3=document.getElementById('step3');
+            step1.className='progress-step';
+            step2.className='progress-step';
+            step3.className='progress-step';
+
+            if(status==='stopping'){
+                step1.classList.add('active');
+            }else if(status==='reinstalling'){
+                step1.classList.add('completed');step2.classList.add('active');
+            }else if(status==='starting'){
+                step1.classList.add('completed');step2.classList.add('completed');step3.classList.add('active');
+            }else if(status==='completed'){
+                step1.classList.add('completed');step2.classList.add('completed');step3.classList.add('completed');
+            }
+        }
+
+        /**
+         * 轮询重装进度（每5秒一次，直到完成或出错）
+         * @param {string} currentPhase - 当前阶段
+         */
+        function pollReinstallStatus(currentPhase){
+            if(progressTimer){clearTimeout(progressTimer);progressTimer=null}
+
+            var body={
+                config_id:progressTaskData.config_id,
+                instance_id:progressTaskData.instance_id,
+                image_id:progressTaskData.image_id,
+                password:progressTaskData.password,
+                key_pair_name:progressTaskData.key_pair_name,
+                system_disk_size:progressTaskData.system_disk_size,
+                phase:currentPhase
+            };
+
+            authFetchJSON('/api/ecs/instance/reinstall_progress','POST',body)
+            .then(function(d){
+                if(d.success){
+                    var newStatus=d.data&&d.data.status?d.data.status:currentPhase;
+                    updateProgressUI(d.message,newStatus);
+
+                    if(newStatus==='completed'){
+                        showToast('重装系统完成！','success');
+                        setTimeout(function(){closeProgressDialog();loadInstances()},2000);
+                    }else{
+                        progressTimer=setTimeout(function(){pollReinstallStatus(newStatus)},5000);
+                    }
+                }else{
+                    updateProgressUI(d.message||'操作失败','error');
+                    showToast(d.message||'操作失败','error');
+                }
+            })
+            .catch(function(){
+                updateProgressUI('请求失败，请检查网络','error');
+                showToast('进度查询失败','error');
+            });
+        }
+
+        // 点击遮罩关闭确认弹窗
+        document.getElementById('confirmOverlay').addEventListener('click',function(e){
+            if(e.target===this)hideConfirm();
+        });
+        // 点击遮罩关闭详情弹窗
+        document.getElementById('detailModal').addEventListener('click',function(e){
+            if(e.target===this)closeDetailModal();
+        });
 
         // 注销
         document.getElementById('logoutBtn').addEventListener('click',function(e){

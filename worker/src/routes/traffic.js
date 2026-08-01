@@ -40,17 +40,57 @@ export async function handleTrafficRoutes(request, env) {
     return await getTrafficStats(request, env);
   }
 
+  // 统计概览（4个统计卡片数据）
+  if (path === '/api/traffic/summary') {
+    return await getTrafficSummary(request, env);
+  }
+
   // 流量排行
   if (path === '/api/traffic/ranking') {
-    return await getTrafficRanking(env);
+    return await getTrafficRanking(request, env);
   }
 
   // 趋势数据
   if (path === '/api/traffic/trend') {
-    return await getTrafficTrend(env);
+    return await getTrafficTrend(request, env);
   }
 
   return errorResponse('接口不存在', 404);
+}
+
+/**
+ * 解析日期范围与配置筛选参数
+ * 默认查询最近7天（含今天）
+ * @param {URL} url - 请求 URL 对象
+ * @returns {{startDate: string, endDate: string, configId: number}} 筛选参数
+ */
+function parseFilterParams(url) {
+  // 默认结束日期为今天（北京时间）
+  const defaultEnd = todayBeijing();
+  // 默认开始日期为6天前（北京时间），与今天组成最近7天
+  const defaultStart = new Date(Date.now() - 6 * 86400000)
+    .toLocaleString('sv-SE', { timeZone: 'Asia/Shanghai' }).split(' ')[0];
+  const startDate = url.searchParams.get('start_date') || defaultStart;
+  const endDate = url.searchParams.get('end_date') || defaultEnd;
+  const configId = parseInt(url.searchParams.get('config_id') || '0', 10) || 0;
+  return { startDate, endDate, configId };
+}
+
+/**
+ * 构建筛选 WHERE 条件与参数（不带 WHERE 关键字）
+ * @param {string} startDate - 开始日期 YYYY-MM-DD
+ * @param {string} endDate - 结束日期 YYYY-MM-DD
+ * @param {number} configId - 配置ID，0表示全部
+ * @returns {{where: string, params: Array}} SQL 条件与参数
+ */
+function buildFilterWhere(startDate, endDate, configId) {
+  let where = 'record_date BETWEEN ? AND ?';
+  const params = [startDate, endDate];
+  if (configId > 0) {
+    where += ' AND config_id = ?';
+    params.push(configId);
+  }
+  return { where, params };
 }
 
 /**
@@ -306,31 +346,94 @@ async function getTrafficStats(request, env) {
 }
 
 /**
- * 获取流量排行
+ * 获取流量统计概览（页面顶部4个统计卡片）
+ * 今日流量：今日所有记录合计（不受日期范围影响，受配置筛选影响）
+ * 入/出/总流量：日期范围内合计（流量记录为当日用量，直接求和）
+ * @param {Request} request - HTTP 请求（含 start_date/end_date/config_id 参数）
+ * @param {object} env - 环境变量
+ * @returns {Response} JSON 响应
  */
-async function getTrafficRanking(env) {
+async function getTrafficSummary(request, env) {
   const db = env.DB;
-  const monthStart = monthStartBeijing();
-  const latest = await dbOne(db, 'SELECT MAX(record_date) as max_date FROM traffic_records WHERE record_date >= ?', [monthStart]);
+  const url = new URL(request.url);
+  const { startDate, endDate, configId } = parseFilterParams(url);
+  const { where, params } = buildFilterWhere(startDate, endDate, configId);
+  const today = todayBeijing();
 
-  if (!latest?.max_date) {
-    return jsonResponse({ ranking: [] });
+  // 今日流量合计
+  let todayWhere = 'record_date = ?';
+  const todayParams = [today];
+  if (configId > 0) {
+    todayWhere += ' AND config_id = ?';
+    todayParams.push(configId);
   }
+  const todayStats = await dbOne(db,
+    `SELECT SUM(traffic_in) as traffic_in, SUM(traffic_out) as traffic_out, SUM(traffic_total) as traffic_total
+     FROM traffic_records WHERE ${todayWhere}`, todayParams);
 
+  // 日期范围内流量合计
+  const totalStats = await dbOne(db,
+    `SELECT SUM(traffic_in) as traffic_in, SUM(traffic_out) as traffic_out, SUM(traffic_total) as traffic_total
+     FROM traffic_records WHERE ${where}`, params);
+
+  return jsonResponse({
+    startDate, endDate, configId,
+    today: {
+      traffic_in: todayStats?.traffic_in || 0,
+      traffic_out: todayStats?.traffic_out || 0,
+      traffic_total: todayStats?.traffic_total || 0
+    },
+    total: {
+      traffic_in: totalStats?.traffic_in || 0,
+      traffic_out: totalStats?.traffic_out || 0,
+      traffic_total: totalStats?.traffic_total || 0
+    }
+  });
+}
+
+/**
+ * 获取流量排行 TOP 20（支持日期范围与配置筛选）
+ * 按实例汇总日期范围内的入/出/总流量
+ * @param {Request} request - HTTP 请求（含 start_date/end_date/config_id 参数）
+ * @param {object} env - 环境变量
+ * @returns {Response} JSON 响应
+ */
+async function getTrafficRanking(request, env) {
+  const db = env.DB;
+  const url = new URL(request.url);
+  const { startDate, endDate, configId } = parseFilterParams(url);
+  const { where, params } = buildFilterWhere(startDate, endDate, configId);
+
+  // 按实例汇总范围内流量（record_date/config_id 仅存在于 traffic_records，无歧义）
   const ranking = await dbAll(db,
-    `SELECT ac.name, tr.instance_id, tr.traffic_out, tr.traffic_total 
+    `SELECT ac.name, tr.instance_id, MAX(tr.instance_name) as instance_name,
+       SUM(tr.traffic_in) as traffic_in, SUM(tr.traffic_out) as traffic_out, SUM(tr.traffic_total) as traffic_total
      FROM traffic_records tr JOIN aliyun_config ac ON tr.config_id = ac.id
-     WHERE tr.record_date = ? ORDER BY tr.traffic_total DESC LIMIT 10`, [latest.max_date]);
+     WHERE ${where}
+     GROUP BY tr.instance_id
+     ORDER BY traffic_total DESC LIMIT 20`, params);
 
   return jsonResponse({ ranking });
 }
 
 /**
- * 获取流量趋势
+ * 获取流量趋势（支持日期范围与配置筛选）
+ * 按日期汇总每日入/出/总流量，用于双数据线趋势图
+ * @param {Request} request - HTTP 请求（含 start_date/end_date/config_id 参数）
+ * @param {object} env - 环境变量
+ * @returns {Response} JSON 响应
  */
-async function getTrafficTrend(env) {
+async function getTrafficTrend(request, env) {
   const db = env.DB;
-  const monthStart = monthStartBeijing();
-  const trend = await getTrendData(db, monthStart);
+  const url = new URL(request.url);
+  const { startDate, endDate, configId } = parseFilterParams(url);
+  const { where, params } = buildFilterWhere(startDate, endDate, configId);
+
+  // 按日期分组汇总（流量记录为当日用量，直接求和即为每日用量）
+  const trend = await dbAll(db,
+    `SELECT record_date, SUM(traffic_in) as traffic_in, SUM(traffic_out) as traffic_out, SUM(traffic_total) as traffic_total
+     FROM traffic_records WHERE ${where}
+     GROUP BY record_date ORDER BY record_date ASC`, params);
+
   return jsonResponse({ trend });
 }

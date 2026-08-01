@@ -277,17 +277,37 @@ export function createEcsClient(accessKeyId, accessKeySecret, regionId = 'cn-han
       return request({ Action: 'DescribeInstanceVncUrl', InstanceId: instanceId, RegionId: regionId });
     },
 
-    /** 查询镜像列表 */
-    async describeImages(imageOwnerAlias = '', pageNum = 1, pageSize = 50) {
+    /**
+     * 查询镜像列表
+     * @param {string} imageOwnerAlias - 镜像类型：system公共镜像/self自定义镜像/others共享镜像/marketplace镜像市场
+     * @param {string} imageType - 镜像类别筛选（可选）
+     * @param {string} ostype - 操作系统类型：linux/windows（可选）
+     * @param {number} pageNum - 页码
+     * @param {number} pageSize - 每页数量
+     * @returns {Promise<object>} 镜像列表
+     */
+    async describeImages(imageOwnerAlias = '', imageType = '', ostype = '', pageNum = 1, pageSize = 50) {
       const params = { Action: 'DescribeImages', RegionId: regionId, PageNumber: pageNum, PageSize: pageSize };
       if (imageOwnerAlias) params.ImageOwnerAlias = imageOwnerAlias;
+      if (imageType) params.ImageType = imageType;
+      if (ostype) params.OSType = ostype;
       return request(params);
     },
 
-    /** 更换系统盘（重装系统） */
-    async replaceSystemDisk(instanceId, imageId, password = '') {
+    /**
+     * 更换系统盘（重装系统）
+     * @param {string} instanceId - 实例ID
+     * @param {string} imageId - 镜像ID
+     * @param {string} password - 新密码（可选，与keyPairName二选一）
+     * @param {string} keyPairName - 密钥对名称（可选，与password二选一）
+     * @param {number} systemDiskSize - 系统盘大小GB（可选，默认不变）
+     * @returns {Promise<object>} 操作结果
+     */
+    async replaceSystemDisk(instanceId, imageId, password = '', keyPairName = '', systemDiskSize = 0) {
       const params = { Action: 'ReplaceSystemDisk', InstanceId: instanceId, ImageId: imageId, RegionId: regionId };
       if (password) params.Password = password;
+      if (keyPairName) params.KeyPairName = keyPairName;
+      if (systemDiskSize > 0) params['SystemDisk.Size'] = systemDiskSize;
       return request(params);
     },
 
