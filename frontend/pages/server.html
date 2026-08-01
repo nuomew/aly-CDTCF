@@ -68,6 +68,22 @@
         .toast{position:fixed;top:24px;right:24px;padding:14px 20px;border-radius:10px;color:#fff;font-size:14px;font-weight:500;z-index:99999;transform:translateX(120%);transition:transform 0.3s;max-width:360px}
         .toast.show{transform:translateX(0)}.toast-success{background:var(--success)}.toast-error{background:var(--danger)}.toast-info{background:var(--primary)}
 
+        /* VNC全屏弹窗 */
+        .vnc-overlay{position:fixed;inset:0;background:#0d1117;z-index:500;display:flex;flex-direction:column}
+        .vnc-fullscreen-header{background:linear-gradient(135deg,#1a1a2e,#16213e);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.08);box-shadow:0 2px 12px rgba(0,0,0,0.3);z-index:10;flex-shrink:0}
+        .vnc-fullscreen-title{display:flex;align-items:center;gap:12px}
+        .vnc-fullscreen-icon{font-size:24px}
+        .vnc-fullscreen-btn{padding:8px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s}
+        .vnc-fullscreen-btn.refresh{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+        .vnc-fullscreen-btn.refresh:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(102,126,234,0.4)}
+        .vnc-fullscreen-btn.close{background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)}
+        .vnc-fullscreen-btn.close:hover{background:rgba(239,68,68,0.25)}
+        .vnc-fullscreen-container{flex:1;position:relative;overflow:hidden}
+        .vnc-fullscreen-iframe{width:100%;height:100%;border:none;display:block}
+        .vnc-fullscreen-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0d1117;z-index:5}
+        .vnc-fullscreen-loading.hidden{display:none}
+        .vnc-fullscreen-spinner{width:40px;height:40px;border:3px solid rgba(102,126,234,0.2);border-top-color:#667eea;border-radius:50%;animation:spin 0.8s linear infinite}
+
         /* ==================== 服务器卡片网格 ==================== */
         .server-grid{display:flex;flex-wrap:wrap;gap:20px;padding:24px}
         .server-card{background:#fff;border-radius:var(--card-radius);box-shadow:var(--card-shadow);width:calc(50% - 10px);min-width:400px;overflow:hidden;border:1px solid rgba(0,0,0,0.05);transition:all 0.3s;animation:fadeInUp 0.5s ease-out both}
@@ -250,7 +266,29 @@
         </main>
     </div>
 
-    <!-- 实例详情弹窗（三面板：基本信息 / 网络信息 / 磁盘信息） -->
+    <!-- VNC全屏弹窗 -->
+    <div id="vncOverlay" class="vnc-overlay" style="display:none;">
+        <div class="vnc-fullscreen-header">
+            <div class="vnc-fullscreen-title">
+                <span class="vnc-fullscreen-icon">🖥️</span>
+                <div>
+                    <div style="font-size:15px;font-weight:700;color:#fff" id="vncInstanceName">--</div>
+                    <div style="font-size:12px;color:rgba(255,255,255,0.5)" id="vncInstanceId">--</div>
+                </div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+                <button class="vnc-fullscreen-btn refresh" onclick="refreshVncIframe()">🔄 刷新连接</button>
+                <button class="vnc-fullscreen-btn close" onclick="closeVncOverlay()">✕ 关闭</button>
+            </div>
+        </div>
+        <div class="vnc-fullscreen-container">
+            <div class="vnc-fullscreen-loading" id="vncLoadingMask">
+                <div class="vnc-fullscreen-spinner"></div>
+                <div style="color:#6b7280;font-size:14px;margin-top:12px">正在建立VNC连接...</div>
+            </div>
+            <iframe class="vnc-fullscreen-iframe" id="vncIframe" src="about:blank"></iframe>
+        </div>
+    </div>
     <div class="modal-overlay" id="detailModal">
         <div class="modal modal-lg">
             <div class="modal-header"><h3 id="detailTitle">实例详情</h3><button class="modal-close" onclick="closeDetailModal()">&times;</button></div>
@@ -623,11 +661,50 @@
          * 打开VNC连接（阿里云控制台VNC页面）
          * @param {number} index - 实例索引
          */
+        var vncState={};
+
         function openVnc(index){
             var inst=instancesData[index];
             if(!inst)return;
-            var url='/pages/vnc.html?config_id='+inst.configId+'&instance_id='+encodeURIComponent(inst.instanceId)+'&name='+encodeURIComponent(inst.instanceName||inst.instanceId)+'&os='+encodeURIComponent(inst.osName||'')+'&region='+encodeURIComponent(inst.regionId||'');
-            window.open(url,'_blank','width='+screen.width+',height='+screen.height+',left=0,top=0,scrollbars=yes,resizable=yes');
+            vncState.configId=inst.configId;
+            vncState.instanceId=inst.instanceId;
+            vncState.osName=inst.osName||'';
+            document.getElementById('vncInstanceName').textContent=inst.instanceName||inst.instanceId;
+            document.getElementById('vncInstanceId').textContent=inst.instanceId;
+            document.getElementById('vncOverlay').style.display='flex';
+            document.getElementById('vncLoadingMask').classList.remove('hidden');
+            document.getElementById('vncIframe').src='about:blank';
+            loadVncUrl();
+        }
+
+        function loadVncUrl(){
+            authFetchJSON('/api/ecs/instance/vnc','POST',{config_id:parseInt(vncState.configId),instance_id:vncState.instanceId}).then(function(resp){
+                if(!resp.success||!resp.data||!resp.data.vncUrl){
+                    document.getElementById('vncLoadingMask').innerHTML='<div style="color:#ef4444;font-size:14px;text-align:center;max-width:400px;padding:20px">'+(resp.message||'获取VNC地址失败')+'</div><button class="vnc-fullscreen-btn refresh" style="margin-top:16px" onclick="loadVncUrl()">重新连接</button>';
+                    return;
+                }
+                var vncUrl=resp.data.vncUrl;
+                var isWindows=(vncState.osName||'').toLowerCase().includes('windows');
+                var fullUrl='https://g.alicdn.com/aliyun/ecs-console-vnc2/0.0.8/index.html?vncUrl='+encodeURIComponent(vncUrl)+'&instanceId='+encodeURIComponent(vncState.instanceId)+'&isWindows='+isWindows;
+                document.getElementById('vncIframe').src=fullUrl;
+                document.getElementById('vncIframe').onload=function(){
+                    setTimeout(function(){document.getElementById('vncLoadingMask').classList.add('hidden')},500);
+                };
+            }).catch(function(){
+                document.getElementById('vncLoadingMask').innerHTML='<div style="color:#ef4444;font-size:14px">网络错误，请检查连接</div><button class="vnc-fullscreen-btn refresh" style="margin-top:16px" onclick="loadVncUrl()">重新连接</button>';
+            });
+        }
+
+        function refreshVncIframe(){
+            document.getElementById('vncLoadingMask').classList.remove('hidden');
+            document.getElementById('vncLoadingMask').innerHTML='<div class="vnc-fullscreen-spinner"></div><div style="color:#6b7280;font-size:14px;margin-top:12px">正在建立VNC连接...</div>';
+            document.getElementById('vncIframe').src='about:blank';
+            loadVncUrl();
+        }
+
+        function closeVncOverlay(){
+            document.getElementById('vncOverlay').style.display='none';
+            document.getElementById('vncIframe').src='about:blank';
         }
 
         /* ==================== 实例详情面板 ==================== */
