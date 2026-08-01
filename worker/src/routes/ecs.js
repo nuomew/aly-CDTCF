@@ -67,10 +67,6 @@ async function getInstances(request, env) {
     configs = await dbAll(db, 'SELECT * FROM aliyun_config WHERE status = 1');
   }
 
-  if (!configs.length) {
-    return jsonResponse({ instances: [], errors: [], message: '暂无启用的阿里云配置' });
-  }
-
   const allInstances = [];
   const errors = [];
 
@@ -81,13 +77,11 @@ async function getInstances(request, env) {
       const result = await client.describeInstances();
 
       if (!result.success) {
-        errors.push({ configName: config.name, error: result.error || '未知错误' });
-        continue;
-      }
-
-      if (result.data?.Instances?.Instance) {
+        errors.push(`[${config.name}] ${result.error || 'API请求失败'}`);
+      } else if (result.data?.Instances?.Instance) {
         const instances = result.data.Instances.Instance;
-        for (const inst of instances) {
+        const instArr = Array.isArray(instances) ? instances : [instances];
+        for (const inst of instArr) {
           allInstances.push({
             configId: config.id,
             configName: config.name,
@@ -111,7 +105,7 @@ async function getInstances(request, env) {
       }
     } catch (err) {
       console.error(`获取实例列表失败 [${config.name}]:`, err);
-      errors.push({ configName: config.name, error: err.message || String(err) });
+      errors.push(`[${config.name}] ${err.message || '未知错误'}`);
     }
   }
 

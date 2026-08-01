@@ -183,14 +183,10 @@
                     var errors=data.errors||[];
                     instancesData=list;
                     var tbody=document.getElementById('instanceTable');
-
-                    // 显示错误信息
                     if(errors.length){
-                        var errHtml=errors.map(function(e){return '<div style="color:var(--danger);padding:4px 0">配置['+esc(e.configName)+']错误: '+esc(e.error)+'</div>'}).join('');
-                        tbody.innerHTML='<tr><td colspan="8" class="empty-msg">'+errHtml+'</td></tr>';
-                        if(!list.length)return;
+                        tbody.innerHTML='<tr><td colspan="8" class="empty-msg" style="color:var(--danger)">'+errors.map(esc).join('<br>')+'</td></tr>';
+                        return;
                     }
-
                     if(!list.length){
                         tbody.innerHTML='<tr><td colspan="8" class="empty-msg">暂无实例</td></tr>';return;
                     }
