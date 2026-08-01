@@ -156,9 +156,6 @@ async function getInstanceDetail(request, env) {
   if (!result.success) return errorResponse('获取实例详情失败: ' + result.error);
 
   const data = result.data;
-  console.log('ECS详情所有字段:', Object.keys(data).join(', '));
-  console.log('OSName=', data.OSName, 'OSNameEn=', data.OSNameEn, 'OSType=', data.OSType);
-  console.log('Memory=', data.Memory, 'Cpu=', data.Cpu, 'InstanceNetworkType=', data.InstanceNetworkType);
   // 内网IP：优先从VPC属性获取，其次从经典网络属性获取
   const privateIpList = data.VpcAttributes?.PrivateIpAddress?.IpAddress
     || data.InnerIpAddress?.IpAddress
@@ -173,14 +170,18 @@ async function getInstanceDetail(request, env) {
   let internetChargeType = data.InternetChargeType || '';
   if (!internetChargeType && data.EipAddress?.InternetChargeType) internetChargeType = data.EipAddress.InternetChargeType;
 
+  // 直接透传所有原始字段 + 映射字段
   return jsonResponse({
+    ...data,  // 透传阿里云原始数据（OSName, OSNameEn, OSType 等所有字段）
+    // 以下是映射后的字段
     instanceId: data.InstanceId,
     instanceName: data.InstanceName || '',
     description: data.Description || '',
     status: data.Status,
     statusText: formatEcsStatus(data.Status),
     instanceType: data.InstanceType || '',
-    osName: data.OSName || data.OSNameEn || '',
+    osName: data.OSName || data.OSNameEn || data.OSType || '',
+    osNameEn: data.OSNameEn || '',
     regionId: data.RegionId,
     publicIp: publicIpList,
     innerIp: privateIpList,
