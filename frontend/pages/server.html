@@ -627,7 +627,7 @@
             var inst=instancesData[index];
             if(!inst)return;
             var url='/pages/vnc.html?config_id='+inst.configId+'&instance_id='+encodeURIComponent(inst.instanceId)+'&name='+encodeURIComponent(inst.instanceName||inst.instanceId)+'&os='+encodeURIComponent(inst.osName||'')+'&region='+encodeURIComponent(inst.regionId||'');
-            window.open(url,'_blank','width=1280,height=800,scrollbars=yes,resizable=yes');
+            window.open(url,'_blank','width='+screen.width+',height='+screen.height+',left=0,top=0,scrollbars=yes,resizable=yes');
         }
 
         /* ==================== 实例详情面板 ==================== */
