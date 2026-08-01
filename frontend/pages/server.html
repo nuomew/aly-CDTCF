@@ -58,8 +58,8 @@
         /* 弹窗 */
         .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;align-items:center;justify-content:center}
         .modal-overlay.show{display:flex}
-        .modal{background:var(--card-bg);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.3);width:600px;max-width:90vw;max-height:90vh;overflow-y:auto}
-        .modal-lg{width:960px}
+        .modal{background:var(--card-bg);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.3);width:600px;max-width:95vw;max-height:92vh;overflow-y:auto}
+        .modal-lg{width:1080px}
         .modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card-bg);z-index:1;border-radius:16px 16px 0 0}
         .modal-header h3{font-size:16px;font-weight:700}
         .modal-close{width:32px;height:32px;border:none;background:transparent;font-size:20px;cursor:pointer;color:var(--text-secondary);border-radius:6px;display:flex;align-items:center;justify-content:center}
@@ -627,7 +627,7 @@
             var inst=instancesData[index];
             if(!inst)return;
             var url='/pages/vnc.html?config_id='+inst.configId+'&instance_id='+encodeURIComponent(inst.instanceId)+'&name='+encodeURIComponent(inst.instanceName||inst.instanceId)+'&os='+encodeURIComponent(inst.osName||'')+'&region='+encodeURIComponent(inst.regionId||'');
-            window.open(url,'_blank','width=1024,height=768');
+            window.open(url,'_blank','width=1280,height=800,scrollbars=yes,resizable=yes');
         }
 
         /* ==================== 实例详情面板 ==================== */
