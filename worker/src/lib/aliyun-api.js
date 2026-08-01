@@ -98,6 +98,10 @@ export async function aliyunRequest({ accessKeyId, accessKeySecret, endpoint, ap
 
     const result = await response.json();
 
+    // 调试：记录API响应的关键字段
+    console.log('aliyunRequest response keys:', Object.keys(result).join(', '));
+    console.log('aliyunRequest Code:', result.Code, 'Message:', result.Message, 'has Data:', !!result.Data);
+
     // 检查响应码
     const code = result.Code;
     let isSuccess = false;
@@ -109,11 +113,13 @@ export async function aliyunRequest({ accessKeyId, accessKeySecret, endpoint, ap
     } else if (result.Success === true) {
       isSuccess = true;
     } else if (code === undefined && !result.Message) {
-      // 阿里云部分API（如DescribeInstanceAttribute）成功时无Code字段
+      isSuccess = true;
+    } else if (code === '' || code === null) {
+      // 部分API成功时Code为空字符串
       isSuccess = true;
     }
 
-    if (!isSuccess && code !== undefined && code !== null) {
+    if (!isSuccess && code !== undefined && code !== null && code !== '') {
       return {
         success: false,
         error: (result.Message || '请求失败') + ' (Code: ' + code + ')',
@@ -122,9 +128,11 @@ export async function aliyunRequest({ accessKeyId, accessKeySecret, endpoint, ap
       };
     }
 
+    // 返回数据：优先取Data字段，否则用整个响应（去除元数据字段）
+    const data = result.Data || result;
     return {
       success: true,
-      data: result.Data || result,
+      data,
       requestId: result.RequestId || ''
     };
   } catch (err) {

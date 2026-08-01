@@ -733,7 +733,12 @@
                 }
                 var d=detailResp.data||{};
                 var disks=(diskResp.success&&diskResp.data)?diskResp.data:[];
-                body.innerHTML=buildDetailHtml(d,disks);
+                // 调试：如果有_debugKeys显示在顶部
+                var debugHtml='';
+                if(d._debugKeys){
+                    debugHtml='<div style="padding:8px 12px;background:#f3f4f6;border-radius:8px;margin-bottom:16px;font-size:12px;color:#6b7280;word-break:break-all"><strong>调试-原始字段:</strong> '+d._debugKeys.join(', ')+'</div>';
+                }
+                body.innerHTML=debugHtml+buildDetailHtml(d,disks);
             }).catch(function(){
                 body.innerHTML='<div class="empty-state"><div class="empty-state-icon">❌</div><p>加载失败，请稍后重试</p></div>';
             });
