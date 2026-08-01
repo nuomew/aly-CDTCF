@@ -752,6 +752,7 @@
          * @returns {string} 详情HTML
          */
         function buildDetailHtml(d,disks){
+            console.log('详情数据:',JSON.stringify(d));
             var expiring=isExpiringSoon(d.expiredTime);
             var publicIp=(d.publicIp&&d.publicIp.length)?d.publicIp.join(', '):'-';
             var innerIp=(d.innerIp&&d.innerIp.length)?d.innerIp.join(', '):'-';
