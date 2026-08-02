@@ -58,6 +58,10 @@
         .form-group label{display:block;font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px}
         .form-group input[type="text"],.form-group input[type="number"],.form-group input[type="password"]{width:100%;padding:14px 18px;border:2px solid rgba(0,0,0,0.08);border-radius:12px;font-size:14px;outline:none;transition:var(--transition);background:#fff}
         .form-group input:focus{border-color:#667eea;box-shadow:0 0 0 4px rgba(102,126,234,0.1)}
+        .pwd-wrapper{position:relative;max-width:500px}
+        .pwd-wrapper input{padding-right:48px!important}
+        .pwd-toggle{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:28px;height:28px;border:none;background:transparent;cursor:pointer;color:var(--text-secondary);border-radius:6px;display:flex;align-items:center;justify-content:center}
+        .pwd-toggle:hover{color:var(--primary)}
         .form-hint{font-size:12px;color:var(--text-secondary);margin-top:6px}
         .switch{position:relative;width:44px;height:24px;display:inline-block}
         .switch input{opacity:0;width:0;height:0}
@@ -130,16 +134,31 @@
                     <div class="card-body">
                         <div class="form-group">
                             <label for="oldPassword">原密码</label>
-                            <input type="password" id="oldPassword" placeholder="请输入当前密码" autocomplete="current-password">
+                            <div class="pwd-wrapper">
+                                <input type="password" id="oldPassword" placeholder="请输入当前密码" autocomplete="current-password">
+                                <button type="button" class="pwd-toggle" onclick="togglePwd('oldPassword',this)" title="显示/隐藏">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </button>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="newPassword">新密码</label>
-                            <input type="password" id="newPassword" placeholder="至少6位" autocomplete="new-password">
+                            <div class="pwd-wrapper">
+                                <input type="password" id="newPassword" placeholder="至少6位" autocomplete="new-password">
+                                <button type="button" class="pwd-toggle" onclick="togglePwd('newPassword',this)" title="显示/隐藏">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </button>
+                            </div>
                             <div class="form-hint">新密码长度至少6位，建议包含大小写字母、数字和特殊符号</div>
                         </div>
                         <div class="form-group">
                             <label for="confirmPassword">确认新密码</label>
-                            <input type="password" id="confirmPassword" placeholder="再次输入新密码" autocomplete="new-password">
+                            <div class="pwd-wrapper">
+                                <input type="password" id="confirmPassword" placeholder="再次输入新密码" autocomplete="new-password">
+                                <button type="button" class="pwd-toggle" onclick="togglePwd('confirmPassword',this)" title="显示/隐藏">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </button>
+                            </div>
                         </div>
                         <div class="form-actions">
                             <button class="btn btn-primary" onclick="changePassword()">修改密码</button>
@@ -206,6 +225,20 @@
                 else showToast(d.message||'保存失败','error')
             })
             .catch(function(){showToast('保存失败','error')});
+        }
+
+        /**
+         * 显示/隐藏密码
+         */
+        function togglePwd(id,btn){
+            var inp=document.getElementById(id);
+            if(inp.type==='password'){
+                inp.type='text';
+                btn.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+            }else{
+                inp.type='password';
+                btn.innerHTML='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+            }
         }
 
         /**
