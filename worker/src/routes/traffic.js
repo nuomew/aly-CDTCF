@@ -378,6 +378,15 @@ async function getTrafficSummary(request, env) {
   // 今日用量 = 今日累计 - 昨日累计
   const todayUsage = (todayCum?.total || 0) - (yesterdayCum?.total || 0);
 
+  // 昨日用量 = 昨日累计 - 前天累计
+  const dayBefore = new Date(Date.now() - 2 * 86400000).toLocaleString('sv-SE', { timeZone: 'Asia/Shanghai' }).split(' ')[0];
+  const dayBeforeCum = await dbOne(db,
+    `SELECT SUM(traffic_total) as total FROM traffic_records
+     WHERE record_date = ?${configFilter}
+     AND id IN (SELECT MAX(id) FROM traffic_records WHERE record_date = ?${configFilter} GROUP BY instance_id)`,
+    [dayBefore, ...configParams, dayBefore, ...configParams]);
+  const yesterdayUsage = (yesterdayCum?.total || 0) - (dayBeforeCum?.total || 0);
+
   // 范围内总用量 = 结束日累计 - 开始日前一天累计
   const endCum = await dbOne(db,
     `SELECT SUM(traffic_total) as total FROM traffic_records
@@ -391,9 +400,19 @@ async function getTrafficSummary(request, env) {
     [startDayBefore, ...configParams, startDayBefore, ...configParams]);
   const rangeTotal = Math.max(0, (endCum?.total || 0) - (startCum?.total || 0));
 
+  // 剩余流量 = 总配额 - 今日累计用量
+  const configs = configId > 0
+    ? await dbAll(db, 'SELECT max_traffic_gb FROM aliyun_config WHERE id = ? AND status = 1', [configId])
+    : await dbAll(db, 'SELECT max_traffic_gb FROM aliyun_config WHERE status = 1');
+  let totalMaxTraffic = 0;
+  for (const c of configs) totalMaxTraffic += parseFloat(c.max_traffic_gb || 200) * 1024 * 1024 * 1024;
+  const remainTraffic = Math.max(0, totalMaxTraffic - (todayCum?.total || 0));
+
   return jsonResponse({
     startDate, endDate, configId,
     today: { traffic_in: 0, traffic_out: 0, traffic_total: Math.max(0, todayUsage) },
+    yesterday: { traffic_in: 0, traffic_out: 0, traffic_total: Math.max(0, yesterdayUsage) },
+    remain: { traffic_in: 0, traffic_out: 0, traffic_total: remainTraffic },
     total: { traffic_in: 0, traffic_out: 0, traffic_total: rangeTotal }
   });
 }

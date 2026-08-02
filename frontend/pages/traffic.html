@@ -155,20 +155,20 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon" style="background:linear-gradient(135deg,#11998e 0%,#38ef7d 100%)">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
                         </div>
                         <div class="stat-info">
-                            <div class="stat-value" id="totalIn">0 B</div>
-                            <div class="stat-label">入流量</div>
+                            <div class="stat-value" id="yesterdayTraffic">0 B</div>
+                            <div class="stat-label">昨日流量</div>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon" style="background:linear-gradient(135deg,#ee0979 0%,#ff6a00 100%)">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
                         </div>
                         <div class="stat-info">
-                            <div class="stat-value" id="totalOut">0 B</div>
-                            <div class="stat-label">出流量</div>
+                            <div class="stat-value" id="remainTraffic">0 B</div>
+                            <div class="stat-label">剩余流量</div>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -281,7 +281,7 @@
         }
 
         /**
-         * 加载统计卡片数据（今日流量/入流量/出流量/总流量）
+         * 加载统计卡片数据（今日流量/昨日流量/剩余流量/总流量）
          */
         function loadSummary(){
             authFetch('/api/traffic/summary'+buildQuery())
@@ -289,8 +289,8 @@
                     if(!resp.success)return;
                     var d=resp.data||{};
                     document.getElementById('todayTraffic').textContent=formatBytes((d.today&&d.today.traffic_total)||0);
-                    document.getElementById('totalIn').textContent=formatBytes((d.total&&d.total.traffic_in)||0);
-                    document.getElementById('totalOut').textContent=formatBytes((d.total&&d.total.traffic_out)||0);
+                    document.getElementById('yesterdayTraffic').textContent=formatBytes((d.yesterday&&d.yesterday.traffic_total)||0);
+                    document.getElementById('remainTraffic').textContent=formatBytes((d.remain&&d.remain.traffic_total)||0);
                     document.getElementById('totalAll').textContent=formatBytes((d.total&&d.total.traffic_total)||0);
                 });
         }
