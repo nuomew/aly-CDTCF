@@ -284,8 +284,8 @@ async function refreshTraffic(request, env) {
       const secretKey = await decryptData(config.access_key_secret, secret);
       const client = createBssClient(config.access_key_id, secretKey);
 
-      // 查询当日明细
-      const result = await client.queryDailyBill(billingDate);
+      // 查询当月累计流量（与 PHP 版一致：QueryInstanceBill 无 Granularity 返回月累计）
+      const result = await client.queryInstanceBill(billingCycle);
       if (!result.success) {
         errors.push(`${config.name}: ${result.error}`);
         continue;
@@ -295,7 +295,7 @@ async function refreshTraffic(request, env) {
       for (const item of parsed.list) {
         const trafficBytes = Math.round(item.usage * 1024 * 1024 * 1024);
 
-        // 检查是否已有记录
+        // 检查是否已有今天记录
         const existing = await dbOne(db,
           'SELECT id FROM traffic_records WHERE config_id = ? AND instance_id = ? AND record_date = ?',
           [config.id, item.instanceId, billingDate]);

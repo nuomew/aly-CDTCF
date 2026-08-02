@@ -46,13 +46,15 @@ export async function handleCronTask(env) {
 async function refreshAllTraffic(db, secret) {
   const configs = await dbAll(db, 'SELECT * FROM aliyun_config WHERE status = 1');
   const billingDate = todayBeijing();
+  const billingCycle = billingDate.substring(0, 7);
 
   for (const config of configs) {
     try {
       const keySecret = await decryptData(config.access_key_secret, secret);
       const client = createBssClient(config.access_key_id, keySecret);
 
-      const result = await client.queryDailyBill(billingDate);
+      // 查询当月累计流量（与 PHP 版一致：QueryInstanceBill 无 Granularity 返回月累计）
+      const result = await client.queryInstanceBill(billingCycle);
       if (!result.success) {
         console.error(`[Cron] 刷新流量失败 [${config.name}]:`, result.error);
         continue;
