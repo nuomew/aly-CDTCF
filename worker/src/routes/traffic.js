@@ -122,9 +122,9 @@ async function getDashboardData(env) {
     COALESCE((SELECT tr2.traffic_out FROM traffic_records tr2 WHERE tr2.config_id = ac.id AND tr2.record_date >= ? ORDER BY tr2.record_date DESC LIMIT 1), 0) as month_out
     FROM aliyun_config ac WHERE ac.status = 1 ORDER BY ac.is_default DESC, ac.id ASC`, [monthStart, monthStart, monthStart]);
 
-  // 今日/昨日流量计算（取最新记录的差值）
-  const todayTraffic = await calculateDailyTraffic(db, monthStart, today, yesterday);
-  const yesterdayTraffic = await calculateDailyTraffic(db, monthStart, yesterday, dayBefore);
+  // 今日/昨日流量计算（月累计差值）
+  const todayTraffic = await calculateDailyTraffic(db, today, yesterday);
+  const yesterdayTraffic = await calculateDailyTraffic(db, yesterday, dayBefore);
 
   // 本月流量（取最新日期记录汇总）
   const latestRecord = await dbOne(db, `SELECT MAX(record_date) as max_date FROM traffic_records WHERE record_date >= ?`, [monthStart]);
@@ -198,41 +198,38 @@ async function getDashboardData(env) {
 }
 
 /**
- * 计算每日流量（当日累计值 - 前日累计值）
+ * 计算每日流量（月累计模式下：今日累计 - 昨日累计 = 今日用量）
  */
-async function calculateDailyTraffic(db, monthStart, targetDate, prevDate) {
-  const targetRecords = await dbAll(db, 
-    `SELECT instance_id, traffic_total FROM traffic_records 
-     WHERE record_date >= ? AND id IN (SELECT MAX(id) FROM traffic_records WHERE record_date >= ? GROUP BY instance_id)
-     AND record_date <= ?`,
-    [monthStart, monthStart, targetDate]);
+async function calculateDailyTraffic(db, targetDate, prevDate) {
+  const targetRecords = await dbAll(db,
+    `SELECT instance_id, traffic_total FROM traffic_records
+     WHERE record_date = ? AND id IN (SELECT MAX(id) FROM traffic_records WHERE record_date = ? GROUP BY instance_id)`,
+    [targetDate, targetDate]);
 
   const prevRecords = await dbAll(db,
-    `SELECT instance_id, traffic_total FROM traffic_records 
-     WHERE record_date >= ? AND record_date <= ? AND id IN (SELECT MAX(id) FROM traffic_records WHERE record_date >= ? AND record_date <= ? GROUP BY instance_id, record_date)
-     AND record_date <= ?`,
-    [monthStart, prevDate, monthStart, prevDate, prevDate]);
+    `SELECT instance_id, traffic_total FROM traffic_records
+     WHERE record_date = ? AND id IN (SELECT MAX(id) FROM traffic_records WHERE record_date = ? GROUP BY instance_id)`,
+    [prevDate, prevDate]);
 
-  const targetMap = {};
-  for (const r of targetRecords) targetMap[r.instance_id] = parseFloat(r.traffic_total);
   const prevMap = {};
   for (const r of prevRecords) prevMap[r.instance_id] = parseFloat(r.traffic_total);
 
   let total = 0;
-  for (const [instanceId, targetVal] of Object.entries(targetMap)) {
-    const prevVal = prevMap[instanceId] || 0;
+  for (const r of targetRecords) {
+    const targetVal = parseFloat(r.traffic_total);
+    const prevVal = prevMap[r.instance_id] || 0;
     total += Math.max(0, targetVal - prevVal);
   }
   return total;
 }
 
 /**
- * 获取7天趋势数据
+ * 获取7天趋势数据（月累计模式下：每日用量 = 当天累计 - 前天累计）
  */
 async function getTrendData(db, monthStart) {
   const records = await dbAll(db,
-    `SELECT record_date, SUM(traffic_total) as traffic_total 
-     FROM traffic_records 
+    `SELECT record_date, SUM(traffic_total) as traffic_total
+     FROM traffic_records
      WHERE record_date >= date('now', '-8 days', '+8 hours') AND record_date >= ?
      AND id IN (SELECT MAX(id) FROM traffic_records WHERE record_date >= date('now', '-8 days', '+8 hours') AND record_date >= ? GROUP BY instance_id, record_date)
      GROUP BY record_date ORDER BY record_date ASC`,
@@ -242,7 +239,7 @@ async function getTrendData(db, monthStart) {
   let prevCum = 0;
   for (let i = 0; i < records.length; i++) {
     const curCum = parseFloat(records[i].traffic_total);
-    const dailyUsage = i === 0 ? 0 : Math.max(0, curCum - prevCum);
+    const dailyUsage = (i === 0 || records[i].record_date === monthStart) ? 0 : Math.max(0, curCum - prevCum);
     result.push({ record_date: records[i].record_date, traffic_total: dailyUsage });
     prevCum = curCum;
   }
@@ -347,93 +344,150 @@ async function getTrafficStats(request, env) {
 
 /**
  * 获取流量统计概览（页面顶部4个统计卡片）
- * 今日流量：今日所有记录合计（不受日期范围影响，受配置筛选影响）
- * 入/出/总流量：日期范围内合计（流量记录为当日用量，直接求和）
- * @param {Request} request - HTTP 请求（含 start_date/end_date/config_id 参数）
- * @param {object} env - 环境变量
- * @returns {Response} JSON 响应
+ * 月累计模式下：今日用量 = 今日累计 - 昨日累计
+ * 范围内总用量 = 结束日累计 - 开始日前一天累计
  */
 async function getTrafficSummary(request, env) {
   const db = env.DB;
   const url = new URL(request.url);
   const { startDate, endDate, configId } = parseFilterParams(url);
-  const { where, params } = buildFilterWhere(startDate, endDate, configId);
   const today = todayBeijing();
+  const yesterday = new Date(Date.now() - 86400000).toLocaleString('sv-SE', { timeZone: 'Asia/Shanghai' }).split(' ')[0];
+  const startDayBefore = new Date(new Date(startDate).getTime() - 86400000).toISOString().split('T')[0];
 
-  // 今日流量合计
-  let todayWhere = 'record_date = ?';
-  const todayParams = [today];
+  // 构建配置筛选
+  let configFilter = '';
+  let configParams = [];
   if (configId > 0) {
-    todayWhere += ' AND config_id = ?';
-    todayParams.push(configId);
+    configFilter = ' AND config_id = ?';
+    configParams = [configId];
   }
-  const todayStats = await dbOne(db,
-    `SELECT SUM(traffic_in) as traffic_in, SUM(traffic_out) as traffic_out, SUM(traffic_total) as traffic_total
-     FROM traffic_records WHERE ${todayWhere}`, todayParams);
 
-  // 日期范围内流量合计
-  const totalStats = await dbOne(db,
-    `SELECT SUM(traffic_in) as traffic_in, SUM(traffic_out) as traffic_out, SUM(traffic_total) as traffic_total
-     FROM traffic_records WHERE ${where}`, params);
+  // 今日累计
+  const todayCum = await dbOne(db,
+    `SELECT SUM(traffic_total) as total FROM traffic_records
+     WHERE record_date = ?${configFilter}
+     AND id IN (SELECT MAX(id) FROM traffic_records WHERE record_date = ?${configFilter} GROUP BY instance_id)`,
+    [today, ...configParams, today, ...configParams]);
+  // 昨日累计
+  const yesterdayCum = await dbOne(db,
+    `SELECT SUM(traffic_total) as total FROM traffic_records
+     WHERE record_date = ?${configFilter}
+     AND id IN (SELECT MAX(id) FROM traffic_records WHERE record_date = ?${configFilter} GROUP BY instance_id)`,
+    [yesterday, ...configParams, yesterday, ...configParams]);
+  // 今日用量 = 今日累计 - 昨日累计
+  const todayUsage = (todayCum?.total || 0) - (yesterdayCum?.total || 0);
+
+  // 范围内总用量 = 结束日累计 - 开始日前一天累计
+  const endCum = await dbOne(db,
+    `SELECT SUM(traffic_total) as total FROM traffic_records
+     WHERE record_date <= ?${configFilter}
+     AND id IN (SELECT MAX(id) FROM traffic_records WHERE record_date <= ?${configFilter} GROUP BY instance_id)`,
+    [endDate, ...configParams, endDate, ...configParams]);
+  const startCum = await dbOne(db,
+    `SELECT SUM(traffic_total) as total FROM traffic_records
+     WHERE record_date <= ?${configFilter}
+     AND id IN (SELECT MAX(id) FROM traffic_records WHERE record_date <= ?${configFilter} GROUP BY instance_id)`,
+    [startDayBefore, ...configParams, startDayBefore, ...configParams]);
+  const rangeTotal = Math.max(0, (endCum?.total || 0) - (startCum?.total || 0));
 
   return jsonResponse({
     startDate, endDate, configId,
-    today: {
-      traffic_in: todayStats?.traffic_in || 0,
-      traffic_out: todayStats?.traffic_out || 0,
-      traffic_total: todayStats?.traffic_total || 0
-    },
-    total: {
-      traffic_in: totalStats?.traffic_in || 0,
-      traffic_out: totalStats?.traffic_out || 0,
-      traffic_total: totalStats?.traffic_total || 0
-    }
+    today: { traffic_in: 0, traffic_out: 0, traffic_total: Math.max(0, todayUsage) },
+    total: { traffic_in: 0, traffic_out: 0, traffic_total: rangeTotal }
   });
 }
 
 /**
  * 获取流量排行 TOP 20（支持日期范围与配置筛选）
- * 按实例汇总日期范围内的入/出/总流量
- * @param {Request} request - HTTP 请求（含 start_date/end_date/config_id 参数）
- * @param {object} env - 环境变量
- * @returns {Response} JSON 响应
+ * 月累计模式下：每个实例的用量 = 结束日累计 - 开始日前一天累计
  */
 async function getTrafficRanking(request, env) {
   const db = env.DB;
   const url = new URL(request.url);
   const { startDate, endDate, configId } = parseFilterParams(url);
-  const { where, params } = buildFilterWhere(startDate, endDate, configId);
+  const startDayBefore = new Date(new Date(startDate).getTime() - 86400000).toISOString().split('T')[0];
 
-  // 按实例汇总范围内流量（record_date/config_id 仅存在于 traffic_records，无歧义）
-  const ranking = await dbAll(db,
-    `SELECT ac.name, tr.instance_id, MAX(tr.instance_name) as instance_name,
-       SUM(tr.traffic_in) as traffic_in, SUM(tr.traffic_out) as traffic_out, SUM(tr.traffic_total) as traffic_total
+  let configFilter = '';
+  let configParams = [];
+  if (configId > 0) {
+    configFilter = ' AND config_id = ?';
+    configParams = [configId];
+  }
+
+  // 取结束日每个实例的最新累计值
+  const endRecords = await dbAll(db,
+    `SELECT ac.name, tr.instance_id, MAX(tr.instance_name) as instance_name, tr.traffic_total
      FROM traffic_records tr JOIN aliyun_config ac ON tr.config_id = ac.id
-     WHERE ${where}
-     GROUP BY tr.instance_id
-     ORDER BY traffic_total DESC LIMIT 20`, params);
+     WHERE tr.record_date <= ?${configFilter}
+     AND tr.id IN (SELECT MAX(id) FROM traffic_records WHERE record_date <= ?${configFilter} GROUP BY instance_id)
+     GROUP BY tr.instance_id ORDER BY tr.traffic_total DESC LIMIT 20`,
+    [endDate, ...configParams, endDate, ...configParams]);
+
+  // 取开始日前一天每个实例的累计值（作为基线）
+  const startRecords = await dbAll(db,
+    `SELECT instance_id, traffic_total FROM traffic_records
+     WHERE record_date <= ?${configFilter}
+     AND id IN (SELECT MAX(id) FROM traffic_records WHERE record_date <= ?${configFilter} GROUP BY instance_id)`,
+    [startDayBefore, ...configParams, startDayBefore, ...configParams]);
+
+  const startMap = {};
+  for (const r of startRecords) startMap[r.instance_id] = parseFloat(r.traffic_total);
+
+  const ranking = endRecords.map(r => {
+    const endVal = parseFloat(r.traffic_total);
+    const startVal = startMap[r.instance_id] || 0;
+    return {
+      name: r.name,
+      instance_id: r.instance_id,
+      instance_name: r.instance_name,
+      traffic_in: 0,
+      traffic_out: Math.max(0, endVal - startVal),
+      traffic_total: Math.max(0, endVal - startVal)
+    };
+  }).filter(r => r.traffic_total > 0).sort((a, b) => b.traffic_total - a.traffic_total);
 
   return jsonResponse({ ranking });
 }
 
 /**
  * 获取流量趋势（支持日期范围与配置筛选）
- * 按日期汇总每日入/出/总流量，用于双数据线趋势图
- * @param {Request} request - HTTP 请求（含 start_date/end_date/config_id 参数）
- * @param {object} env - 环境变量
- * @returns {Response} JSON 响应
+ * 月累计模式下：每日用量 = 当天累计 - 前天累计
  */
 async function getTrafficTrend(request, env) {
   const db = env.DB;
   const url = new URL(request.url);
   const { startDate, endDate, configId } = parseFilterParams(url);
-  const { where, params } = buildFilterWhere(startDate, endDate, configId);
+  let configFilter = '';
+  let configParams = [];
+  if (configId > 0) {
+    configFilter = ' AND config_id = ?';
+    configParams = [configId];
+  }
 
-  // 按日期分组汇总（流量记录为当日用量，直接求和即为每日用量）
-  const trend = await dbAll(db,
-    `SELECT record_date, SUM(traffic_in) as traffic_in, SUM(traffic_out) as traffic_out, SUM(traffic_total) as traffic_total
-     FROM traffic_records WHERE ${where}
-     GROUP BY record_date ORDER BY record_date ASC`, params);
+  // 取范围内每天的累计值
+  const records = await dbAll(db,
+    `SELECT record_date, SUM(traffic_total) as traffic_total
+     FROM traffic_records
+     WHERE record_date BETWEEN ? AND ?${configFilter}
+     AND id IN (SELECT MAX(id) FROM traffic_records WHERE record_date BETWEEN ? AND ?${configFilter} GROUP BY instance_id, record_date)
+     GROUP BY record_date ORDER BY record_date ASC`,
+    [startDate, endDate, ...configParams, startDate, endDate, ...configParams]);
+
+  // 计算每日用量（差值）
+  const trend = [];
+  let prevCum = 0;
+  for (let i = 0; i < records.length; i++) {
+    const curCum = parseFloat(records[i].traffic_total);
+    const dailyUsage = i === 0 ? 0 : Math.max(0, curCum - prevCum);
+    trend.push({
+      record_date: records[i].record_date,
+      traffic_in: 0,
+      traffic_out: dailyUsage,
+      traffic_total: dailyUsage
+    });
+    prevCum = curCum;
+  }
 
   return jsonResponse({ trend });
 }
