@@ -56,7 +56,7 @@
         @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
         .form-group{margin-bottom:20px;max-width:500px}
         .form-group label{display:block;font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px}
-        .form-group input[type="text"],.form-group input[type="number"]{width:100%;padding:14px 18px;border:2px solid rgba(0,0,0,0.08);border-radius:12px;font-size:14px;outline:none;transition:var(--transition);background:#fff}
+        .form-group input[type="text"],.form-group input[type="number"],.form-group input[type="password"]{width:100%;padding:14px 18px;border:2px solid rgba(0,0,0,0.08);border-radius:12px;font-size:14px;outline:none;transition:var(--transition);background:#fff}
         .form-group input:focus{border-color:#667eea;box-shadow:0 0 0 4px rgba(102,126,234,0.1)}
         .form-hint{font-size:12px;color:var(--text-secondary);margin-top:6px}
         .switch{position:relative;width:44px;height:24px;display:inline-block}
@@ -124,6 +124,28 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="card">
+                    <div class="card-header"><h3>修改密码</h3></div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="oldPassword">原密码</label>
+                            <input type="password" id="oldPassword" placeholder="请输入当前密码" autocomplete="current-password">
+                        </div>
+                        <div class="form-group">
+                            <label for="newPassword">新密码</label>
+                            <input type="password" id="newPassword" placeholder="至少6位" autocomplete="new-password">
+                            <div class="form-hint">新密码长度至少6位，建议包含大小写字母、数字和特殊符号</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">确认新密码</label>
+                            <input type="password" id="confirmPassword" placeholder="再次输入新密码" autocomplete="new-password">
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" onclick="changePassword()">修改密码</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -184,6 +206,32 @@
                 else showToast(d.message||'保存失败','error')
             })
             .catch(function(){showToast('保存失败','error')});
+        }
+
+        /**
+         * 修改密码
+         */
+        function changePassword(){
+            var oldPwd=document.getElementById('oldPassword').value;
+            var newPwd=document.getElementById('newPassword').value;
+            var confirmPwd=document.getElementById('confirmPassword').value;
+
+            if(!oldPwd||!newPwd||!confirmPwd){showToast('请填写完整','error');return}
+            if(newPwd.length<6){showToast('新密码至少6位','error');return}
+            if(newPwd!==confirmPwd){showToast('两次密码不一致','error');return}
+
+            authFetchJSON('/api/system/change-password','POST',{old_password:oldPwd,new_password:newPwd})
+            .then(function(d){
+                if(d.success){
+                    showToast(d.message||'密码修改成功','success');
+                    document.getElementById('oldPassword').value='';
+                    document.getElementById('newPassword').value='';
+                    document.getElementById('confirmPassword').value='';
+                }else{
+                    showToast(d.message||'修改失败','error')
+                }
+            })
+            .catch(function(){showToast('修改失败','error')});
         }
 
         // 注销

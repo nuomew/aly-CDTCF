@@ -5,6 +5,7 @@
 
 import { dbAll, dbOne, dbRun, getConfig, setConfig } from '../lib/db.js';
 import { jsonResponse, errorResponse, logOperation } from '../lib/helpers.js';
+import { hashPassword, verifyPassword } from '../lib/auth.js';
 
 /**
  * 处理系统相关路由
@@ -23,6 +24,11 @@ export async function handleSystemRoutes(request, env) {
   }
   if (path === '/api/system/settings' && method === 'POST') {
     return await updateSettings(request, env);
+  }
+
+  // 修改密码
+  if (path === '/api/system/change-password' && method === 'POST') {
+    return await handleChangePassword(request, env);
   }
 
   // 邮箱配置
@@ -187,4 +193,42 @@ async function getLogs(request, env) {
   const logs = await dbAll(env.DB, 'SELECT * FROM operation_logs ORDER BY id DESC LIMIT ? OFFSET ?', [limit, offset]);
 
   return jsonResponse({ total: total?.count || 0, page, limit, logs });
+}
+
+/**
+ * 修改密码
+ */
+async function handleChangePassword(request, env) {
+  const { old_password, new_password } = await request.json();
+
+  if (!old_password || !new_password) {
+    return errorResponse('原密码和新密码不能为空');
+  }
+  if (new_password.length < 6) {
+    return errorResponse('新密码长度不能少于6位');
+  }
+
+  const admin = request.admin;
+  if (!admin) {
+    return errorResponse('未登录', 401);
+  }
+
+  const adminRow = await dbOne(env.DB, 'SELECT * FROM admin_users WHERE id = ? AND status = 1', [admin.id]);
+  if (!adminRow) {
+    return errorResponse('管理员账号不存在或已禁用');
+  }
+
+  const valid = await verifyPassword(old_password, adminRow.password);
+  if (!valid) {
+    return errorResponse('原密码错误');
+  }
+
+  const hashedPassword = await hashPassword(new_password);
+  await dbRun(env.DB, "UPDATE admin_users SET password = ?, updated_at = datetime('now', '+8 hours') WHERE id = ?",
+    [hashedPassword, admin.id]);
+
+  const ip = request.headers.get('CF-Connecting-IP') || '';
+  await logOperation(env.DB, admin.id, admin.username, 'change_password', '认证', '修改密码', ip);
+
+  return jsonResponse(null, '密码修改成功');
 }
