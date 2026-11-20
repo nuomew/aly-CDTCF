@@ -97,6 +97,10 @@
         .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:#667eea;box-shadow:0 0 0 4px rgba(102,126,234,0.1)}
         .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
         .form-hint{font-size:11px;color:var(--text-secondary);margin-top:4px}
+        .pwd-wrapper{position:relative}
+        .pwd-wrapper input{padding-right:48px!important}
+        .pwd-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:28px;height:28px;border:none;background:transparent;cursor:pointer;color:var(--text-secondary);border-radius:6px;display:flex;align-items:center;justify-content:center}
+        .pwd-toggle:hover{color:var(--primary)}
         /* 开关 */
         .switch{position:relative;width:44px;height:24px;display:inline-block}
         .switch input{opacity:0;width:0;height:0}
@@ -165,7 +169,7 @@
                 <div class="form-group"><label>配置名称 *</label><input type="text" id="cfgName" placeholder="如：生产环境"></div>
                 <div class="form-row">
                     <div class="form-group"><label>AccessKey ID *</label><input type="text" id="cfgAK" placeholder="阿里云AK"></div>
-                    <div class="form-group"><label>AccessKey Secret *</label><input type="password" id="cfgSK" placeholder="阿里云SK"></div>
+                    <div class="form-group"><label>AccessKey Secret *</label><div class="pwd-wrapper"><input type="password" id="cfgSK" placeholder="阿里云SK" autocomplete="new-password"><button type="button" class="pwd-toggle" id="cfgSKToggle" onclick="toggleSecret()" title="显示/隐藏" aria-label="显示/隐藏 AccessKey Secret"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
                 </div>
                 <div class="form-row">
                     <div class="form-group"><label>地域</label>
@@ -315,6 +319,34 @@
          */
         function esc(s){if(!s)return'';var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
+        var EYE_SHOW_SVG='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+        var EYE_HIDE_SVG='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+
+        /**
+         * 重置 AccessKey Secret 输入框为隐藏状态
+         */
+        function resetSecretVisibility(){
+            var inp=document.getElementById('cfgSK');
+            var btn=document.getElementById('cfgSKToggle');
+            inp.type='password';
+            if(btn)btn.innerHTML=EYE_SHOW_SVG;
+        }
+
+        /**
+         * 显示/隐藏 AccessKey Secret
+         */
+        function toggleSecret(){
+            var inp=document.getElementById('cfgSK');
+            var btn=document.getElementById('cfgSKToggle');
+            if(inp.type==='password'){
+                inp.type='text';
+                if(btn)btn.innerHTML=EYE_HIDE_SVG;
+            }else{
+                inp.type='password';
+                if(btn)btn.innerHTML=EYE_SHOW_SVG;
+            }
+        }
+
         /**
          * 打开添加配置弹窗
          */
@@ -325,6 +357,7 @@
             document.getElementById('cfgAK').value='';
             document.getElementById('cfgSK').value='';
             document.getElementById('cfgSK').placeholder='阿里云SK';
+            resetSecretVisibility();
             document.getElementById('cfgRegion').value='cn-hangzhou';
             document.getElementById('cfgMaxTraffic').value='200';
             document.getElementById('cfgAlert').value='80';
@@ -340,7 +373,11 @@
         /**
          * 关闭配置弹窗
          */
-        function closeModal(){document.getElementById('configModal').classList.remove('show')}
+        function closeModal(){
+            document.getElementById('configModal').classList.remove('show');
+            document.getElementById('cfgSK').value='';
+            resetSecretVisibility();
+        }
 
         /**
          * 编辑配置 - 加载配置数据到弹窗
@@ -355,8 +392,9 @@
                     document.getElementById('cfgId').value=c.id;
                     document.getElementById('cfgName').value=c.name||'';
                     document.getElementById('cfgAK').value=c.access_key_id||'';
-                    document.getElementById('cfgSK').value='';
+                    document.getElementById('cfgSK').value=c.access_key_secret||'';
                     document.getElementById('cfgSK').placeholder='留空不修改';
+                    resetSecretVisibility();
                     document.getElementById('cfgRegion').value=c.region_id||'cn-hangzhou';
                     document.getElementById('cfgMaxTraffic').value=c.max_traffic_gb||200;
                     document.getElementById('cfgAlert').value=c.alert_threshold||80;
@@ -367,7 +405,8 @@
                     document.getElementById('cfgStartMinute').value=c.auto_start_minute||0;
                     document.getElementById('cfgRemark').value=c.remark||'';
                     document.getElementById('configModal').classList.add('show');
-                });
+                })
+                .catch(function(){showToast('加载配置失败','error')});
         }
 
         /**

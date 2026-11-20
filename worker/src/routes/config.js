@@ -83,8 +83,22 @@ async function getConfigDetail(id, env) {
   const config = await dbOne(env.DB, 'SELECT * FROM aliyun_config WHERE id = ?', [id]);
   if (!config) return errorResponse('配置不存在', 404);
 
-  config.access_key_secret = '******';
-  return jsonResponse(config);
+  // 解密 AccessKey Secret 供已认证管理员在编辑弹窗中查看和修改
+  if (config.access_key_secret) {
+    try {
+      config.access_key_secret = await decryptData(config.access_key_secret, env.APP_SECRET);
+    } catch (err) {
+      console.error('解密 AccessKey Secret 失败:', err?.message || err);
+      config.access_key_secret = '';
+    }
+  } else {
+    config.access_key_secret = '';
+  }
+
+  const response = jsonResponse(config);
+  // 含明文密钥的响应禁止浏览器和代理缓存
+  response.headers.set('Cache-Control', 'no-store');
+  return response;
 }
 
 /**
